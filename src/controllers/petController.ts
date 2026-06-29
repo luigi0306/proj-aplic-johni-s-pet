@@ -47,7 +47,8 @@ export const criarPet = async (req: Request, res: Response, next: NextFunction):
 
 export const atualizarPet = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { id } = req.params;
-  const { nome, raca, porte, faixa_etaria, hist_medico, id_cliente } = req.body;
+  const updates = req.body;
+  const { id_cliente } = updates;
   try {
     if (id_cliente) {
       const clientCheck = await db.query('SELECT 1 FROM cliente WHERE id_cliente = $1', [id_cliente]);
@@ -57,13 +58,18 @@ export const atualizarPet = async (req: Request, res: Response, next: NextFuncti
       }
     }
 
+    const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
+    if (fields.length === 0) {
+      res.status(400).json({ error: 'Nenhum campo para atualização foi enviado.' });
+      return;
+    }
     const queryText = `
       UPDATE pet
-      SET nome = $1, raca = $2, porte = $3, faixa_etaria = $4, hist_medico = $5, id_cliente = $6
-      WHERE id_pet = $7
+      SET ${fields.join(', ')}
+      WHERE id_pet = $${fields.length + 1}
       RETURNING *
     `;
-    const { rows } = await db.query(queryText, [nome, raca, porte, faixa_etaria, hist_medico, id_cliente, id]);
+    const { rows } = await db.query(queryText, [...Object.values(updates), id]);
     if (rows.length === 0) {
       res.status(404).json({ error: 'Pet not found' });
       return;
@@ -83,6 +89,27 @@ export const deletarPet = async (req: Request, res: Response, next: NextFunction
       return;
     }
     res.json({ message: 'Pet deleted successfully', pet: rows[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const pesquisarPetsPorNome = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  const { nome } = req.query;
+  if (!nome || typeof nome !== 'string' || nome.trim() === '') {
+    res.status(400).json({ error: 'Query param "nome" é obrigatório.' });
+    return;
+  }
+  try {
+    const { rows } = await db.query(
+      `SELECT p.*, c.nome AS nome_cliente
+       FROM pet p
+       JOIN cliente c ON c.id_cliente = p.id_cliente
+       WHERE p.nome ILIKE $1
+       ORDER BY p.nome ASC`,
+      [`%${nome.trim()}%`]
+    );
+    res.json(rows);
   } catch (error) {
     next(error);
   }

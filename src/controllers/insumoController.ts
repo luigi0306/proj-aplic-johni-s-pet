@@ -45,15 +45,20 @@ export const criarInsumo = async (req: Request, res: Response, next: NextFunctio
 // Update insumo
 export const atualizarInsumo = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { id } = req.params;
-  const { nome, quantidade_estoque } = req.body;
+  const updates = req.body;
   try {
+    const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
+    if (fields.length === 0) {
+      res.status(400).json({ error: 'Nenhum campo para atualização foi enviado.' });
+      return;
+    }
     const queryText = `
       UPDATE insumos
-      SET nome = $1, quantidade_estoque = $2
-      WHERE id_insumo = $3
+      SET ${fields.join(', ')}
+      WHERE id_insumo = $${fields.length + 1}
       RETURNING *
     `;
-    const { rows } = await db.query(queryText, [nome, quantidade_estoque, id]);
+    const { rows } = await db.query(queryText, [...Object.values(updates), id]);
     if (rows.length === 0) {
       res.status(404).json({ error: 'Insumo not found' });
       return;

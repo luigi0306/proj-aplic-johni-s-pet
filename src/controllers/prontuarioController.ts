@@ -54,15 +54,20 @@ export const criarProntuario = async (req: Request, res: Response, next: NextFun
 
 export const atualizarProntuario = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { id } = req.params;
-  const { id_pet, id_funcionario, data_atendimento, descricao } = req.body;
+  const updates = req.body;
   try {
+    const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
+    if (fields.length === 0) {
+      res.status(400).json({ error: 'Nenhum campo para atualização foi enviado.' });
+      return;
+    }
     const queryText = `
       UPDATE prontuario
-      SET id_pet = $1, id_funcionario = $2, data_atendimento = $3, descricao = $4
-      WHERE id_prontuario = $5
+      SET ${fields.join(', ')}
+      WHERE id_prontuario = $${fields.length + 1}
       RETURNING *
     `;
-    const { rows } = await db.query(queryText, [id_pet, id_funcionario, data_atendimento, descricao, id]);
+    const { rows } = await db.query(queryText, [...Object.values(updates), id]);
     if (rows.length === 0) {
       res.status(404).json({ error: 'Prontuario not found' });
       return;

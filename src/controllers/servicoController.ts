@@ -41,15 +41,20 @@ export const criarServico = async (req: Request, res: Response, next: NextFuncti
 
 export const atualizarServico = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { id } = req.params;
-  const { nome, preco_base } = req.body;
+  const updates = req.body;
   try {
+    const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
+    if (fields.length === 0) {
+      res.status(400).json({ error: 'Nenhum campo para atualização foi enviado.' });
+      return;
+    }
     const queryText = `
       UPDATE servico
-      SET nome = $1, preco_base = $2
-      WHERE id_servico = $3
+      SET ${fields.join(', ')}
+      WHERE id_servico = $${fields.length + 1}
       RETURNING *
     `;
-    const { rows } = await db.query(queryText, [nome, preco_base, id]);
+    const { rows } = await db.query(queryText, [...Object.values(updates), id]);
     if (rows.length === 0) {
       res.status(404).json({ error: 'Service not found' });
       return;

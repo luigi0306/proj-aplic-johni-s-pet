@@ -41,15 +41,20 @@ export const criarCliente = async (req: Request, res: Response, next: NextFuncti
 
 export const atualizarCliente = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { id } = req.params;
-  const { cpf, nome, telefone, endereco } = req.body;
+  const updates = req.body;
   try {
+    const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
+    if (fields.length === 0) {
+      res.status(400).json({ error: 'Nenhum campo para atualização foi enviado.' });
+      return;
+    }
     const queryText = `
       UPDATE cliente
-      SET cpf = $1, nome = $2, telefone = $3, endereco = $4
-      WHERE id_cliente = $5
+      SET ${fields.join(', ')}
+      WHERE id_cliente = $${fields.length + 1}
       RETURNING *
     `;
-    const { rows } = await db.query(queryText, [cpf, nome, telefone, endereco, id]);
+    const { rows } = await db.query(queryText, [...Object.values(updates), id]);
     if (rows.length === 0) {
       res.status(404).json({ error: 'Client not found' });
       return;
@@ -69,6 +74,23 @@ export const deletarCliente = async (req: Request, res: Response, next: NextFunc
       return;
     }
     res.json({ message: 'Client deleted successfully', client: rows[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const pesquisarClientesPorNome = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  const { nome } = req.query;
+  if (!nome || typeof nome !== 'string' || nome.trim() === '') {
+    res.status(400).json({ error: 'Query param "nome" é obrigatório.' });
+    return;
+  }
+  try {
+    const { rows } = await db.query(
+      `SELECT * FROM cliente WHERE nome ILIKE $1 ORDER BY nome ASC`,
+      [`%${nome.trim()}%`]
+    );
+    res.json(rows);
   } catch (error) {
     next(error);
   }

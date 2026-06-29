@@ -101,15 +101,20 @@ export const criarAgendamento = async (req: Request, res: Response, next: NextFu
 // Update appointment
 export const atualizarAgendamento = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { id } = req.params;
-  const { id_pet, id_funcionario, data_agendamento, hora, status, valor_total } = req.body;
+  const updates = req.body;
   try {
+    const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
+    if (fields.length === 0) {
+      res.status(400).json({ error: 'Nenhum campo para atualização foi enviado.' });
+      return;
+    }
     const queryText = `
       UPDATE agendamento
-      SET id_pet = $1, id_funcionario = $2, data_agendamento = $3, hora = $4, status = $5, valor_total = $6
-      WHERE id_agendamento = $7
+      SET ${fields.join(', ')}
+      WHERE id_agendamento = $${fields.length + 1}
       RETURNING *
     `;
-    const { rows } = await db.query(queryText, [id_pet, id_funcionario, data_agendamento, hora, status, valor_total, id]);
+    const { rows } = await db.query(queryText, [...Object.values(updates), id]);
     if (rows.length === 0) {
       res.status(404).json({ error: 'Appointment not found' });
       return;

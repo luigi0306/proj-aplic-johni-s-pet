@@ -41,15 +41,20 @@ export const criarProduto = async (req: Request, res: Response, next: NextFuncti
 
 export const atualizarProduto = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { id } = req.params;
-  const { nome, preco, categoria, estoque_atual } = req.body;
+  const updates = req.body;
   try {
+    const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
+    if (fields.length === 0) {
+      res.status(400).json({ error: 'Nenhum campo para atualização foi enviado.' });
+      return;
+    }
     const queryText = `
       UPDATE produto
-      SET nome = $1, preco = $2, categoria = $3, estoque_atual = $4
-      WHERE id_produto = $5
+      SET ${fields.join(', ')}
+      WHERE id_produto = $${fields.length + 1}
       RETURNING *
     `;
-    const { rows } = await db.query(queryText, [nome, preco, categoria, estoque_atual, id]);
+    const { rows } = await db.query(queryText, [...Object.values(updates), id]);
     if (rows.length === 0) {
       res.status(404).json({ error: 'Product not found' });
       return;

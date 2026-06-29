@@ -41,15 +41,20 @@ export const criarFuncionario = async (req: Request, res: Response, next: NextFu
 
 export const atualizarFuncionario = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { id } = req.params;
-  const { cpf, nome, cargo, salario } = req.body;
+  const updates = req.body;
   try {
+    const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
+    if (fields.length === 0) {
+      res.status(400).json({ error: 'Nenhum campo para atualização foi enviado.' });
+      return;
+    }
     const queryText = `
       UPDATE funcionario
-      SET cpf = $1, nome = $2, cargo = $3, salario = $4
-      WHERE id_funcionario = $5
+      SET ${fields.join(', ')}
+      WHERE id_funcionario = $${fields.length + 1}
       RETURNING *
     `;
-    const { rows } = await db.query(queryText, [cpf, nome, cargo, salario, id]);
+    const { rows } = await db.query(queryText, [...Object.values(updates), id]);
     if (rows.length === 0) {
       res.status(404).json({ error: 'Employee not found' });
       return;

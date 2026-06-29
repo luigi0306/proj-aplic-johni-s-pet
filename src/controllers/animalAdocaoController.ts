@@ -44,17 +44,20 @@ export const criarAnimal = async (req: Request, res: Response, next: NextFunctio
 
 export const atualizarAnimal = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { id } = req.params;
-  const { nome, raca, porte, faixa_etaria, hist_medico, data_resgate, status, id_cliente_adotante } = req.body;
+  const updates = req.body;
   try {
+    const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
+    if (fields.length === 0) {
+      res.status(400).json({ error: 'Nenhum campo para atualização foi enviado.' });
+      return;
+    }
     const queryText = `
       UPDATE animal_adocao
-      SET nome = $1, raca = $2, porte = $3, faixa_etaria = $4, hist_medico = $5, data_resgate = $6, status = $7, id_cliente_adotante = $8
-      WHERE id_animal_adocao = $9
+      SET ${fields.join(', ')}
+      WHERE id_animal_adocao = $${fields.length + 1}
       RETURNING *
     `;
-    const { rows } = await db.query(queryText, [
-      nome, raca, porte, faixa_etaria, hist_medico, data_resgate, status, id_cliente_adotante || null, id
-    ]);
+    const { rows } = await db.query(queryText, [...Object.values(updates), id]);
     if (rows.length === 0) {
       res.status(404).json({ error: 'Animal not found' });
       return;
