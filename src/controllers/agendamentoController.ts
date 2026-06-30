@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as db from '../config/db';
+import { AppError } from '../errors/AppError';
 
 interface ServicoInput {
   id_servico: number;
@@ -44,8 +45,7 @@ export const buscarAgendamentoPorId = async (req: Request, res: Response, next: 
     `;
     const { rows } = await db.query(queryText, [id]);
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Appointment not found' });
-      return;
+      throw new AppError('Agendamento não encontrado.', 404);
     }
     res.json(rows[0]);
   } catch (error) {
@@ -105,8 +105,7 @@ export const atualizarAgendamento = async (req: Request, res: Response, next: Ne
   try {
     const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
     if (fields.length === 0) {
-      res.status(400).json({ error: 'Nenhum campo para atualização foi enviado.' });
-      return;
+      throw new AppError('Nenhum campo para atualização foi enviado.', 400);
     }
     const queryText = `
       UPDATE agendamento
@@ -116,8 +115,7 @@ export const atualizarAgendamento = async (req: Request, res: Response, next: Ne
     `;
     const { rows } = await db.query(queryText, [...Object.values(updates), id]);
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Appointment not found' });
-      return;
+      throw new AppError('Agendamento não encontrado.', 404);
     }
     res.json(rows[0]);
   } catch (error) {
@@ -139,8 +137,7 @@ export const deletarAgendamento = async (req: Request, res: Response, next: Next
     const { rows } = await client.query('DELETE FROM agendamento WHERE id_agendamento = $1 RETURNING *', [id]);
     if (rows.length === 0) {
       await client.query('ROLLBACK');
-      res.status(404).json({ error: 'Appointment not found' });
-      return;
+      throw new AppError('Agendamento não encontrado.', 404);
     }
     
     await client.query('COMMIT');

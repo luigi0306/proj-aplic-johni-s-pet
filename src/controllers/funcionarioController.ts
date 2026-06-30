@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as db from '../config/db';
+import { AppError } from '../errors/AppError';
 
 export const listarFuncionarios = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -15,8 +16,7 @@ export const buscarFuncionarioPorId = async (req: Request, res: Response, next: 
   try {
     const { rows } = await db.query('SELECT * FROM funcionario WHERE id_funcionario = $1', [id]);
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Employee not found' });
-      return;
+      throw new AppError('Funcionário não encontrado.', 404);
     }
     res.json(rows[0]);
   } catch (error) {
@@ -45,8 +45,7 @@ export const atualizarFuncionario = async (req: Request, res: Response, next: Ne
   try {
     const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
     if (fields.length === 0) {
-      res.status(400).json({ error: 'Nenhum campo para atualização foi enviado.' });
-      return;
+      throw new AppError('Nenhum campo para atualização foi enviado.', 400);
     }
     const queryText = `
       UPDATE funcionario
@@ -56,8 +55,7 @@ export const atualizarFuncionario = async (req: Request, res: Response, next: Ne
     `;
     const { rows } = await db.query(queryText, [...Object.values(updates), id]);
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Employee not found' });
-      return;
+      throw new AppError('Funcionário não encontrado.', 404);
     }
     res.json(rows[0]);
   } catch (error) {
@@ -70,8 +68,7 @@ export const deletarFuncionario = async (req: Request, res: Response, next: Next
   try {
     const { rows } = await db.query('DELETE FROM funcionario WHERE id_funcionario = $1 RETURNING *', [id]);
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Employee not found' });
-      return;
+      throw new AppError('Funcionário não encontrado.', 404);
     }
     res.json({ message: 'Employee deleted successfully', employee: rows[0] });
   } catch (error) {

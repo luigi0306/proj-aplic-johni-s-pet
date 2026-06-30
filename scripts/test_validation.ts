@@ -1,7 +1,7 @@
 import { Client } from 'pg';
 
 async function runTests() {
-  const baseUrl = 'http://localhost:3000';
+  const baseUrl = 'http://localhost:3000/api';
 
   console.log('--- STARTING VALIDATION AND API TESTS ---');
 

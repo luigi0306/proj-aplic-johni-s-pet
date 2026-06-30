@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as db from '../config/db';
+import { AppError } from '../errors/AppError';
 
 export const listarAnimais = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -15,8 +16,7 @@ export const buscarAnimalPorId = async (req: Request, res: Response, next: NextF
   try {
     const { rows } = await db.query('SELECT * FROM animal_adocao WHERE id_animal_adocao = $1', [id]);
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Animal not found' });
-      return;
+      throw new AppError('Animal de adoção não encontrado.', 404);
     }
     res.json(rows[0]);
   } catch (error) {
@@ -48,8 +48,7 @@ export const atualizarAnimal = async (req: Request, res: Response, next: NextFun
   try {
     const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
     if (fields.length === 0) {
-      res.status(400).json({ error: 'Nenhum campo para atualização foi enviado.' });
-      return;
+      throw new AppError('Nenhum campo para atualização foi enviado.', 400);
     }
     const queryText = `
       UPDATE animal_adocao
@@ -59,8 +58,7 @@ export const atualizarAnimal = async (req: Request, res: Response, next: NextFun
     `;
     const { rows } = await db.query(queryText, [...Object.values(updates), id]);
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Animal not found' });
-      return;
+      throw new AppError('Animal de adoção não encontrado.', 404);
     }
     res.json(rows[0]);
   } catch (error) {
@@ -73,8 +71,7 @@ export const deletarAnimal = async (req: Request, res: Response, next: NextFunct
   try {
     const { rows } = await db.query('DELETE FROM animal_adocao WHERE id_animal_adocao = $1 RETURNING *', [id]);
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Animal not found' });
-      return;
+      throw new AppError('Animal de adoção não encontrado.', 404);
     }
     res.json({ message: 'Adoption animal deleted successfully', animal: rows[0] });
   } catch (error) {

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as db from '../config/db';
+import { AppError } from '../errors/AppError';
 
 // List all insumos
 export const listarInsumos = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -17,8 +18,7 @@ export const buscarInsumoPorId = async (req: Request, res: Response, next: NextF
   try {
     const { rows } = await db.query('SELECT * FROM insumos WHERE id_insumo = $1', [id]);
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Insumo not found' });
-      return;
+      throw new AppError('Insumo não encontrado.', 404);
     }
     res.json(rows[0]);
   } catch (error) {
@@ -49,8 +49,7 @@ export const atualizarInsumo = async (req: Request, res: Response, next: NextFun
   try {
     const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
     if (fields.length === 0) {
-      res.status(400).json({ error: 'Nenhum campo para atualização foi enviado.' });
-      return;
+      throw new AppError('Nenhum campo para atualização foi enviado.', 400);
     }
     const queryText = `
       UPDATE insumos
@@ -60,8 +59,7 @@ export const atualizarInsumo = async (req: Request, res: Response, next: NextFun
     `;
     const { rows } = await db.query(queryText, [...Object.values(updates), id]);
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Insumo not found' });
-      return;
+      throw new AppError('Insumo não encontrado.', 404);
     }
     res.json(rows[0]);
   } catch (error) {
@@ -75,8 +73,7 @@ export const deletarInsumo = async (req: Request, res: Response, next: NextFunct
   try {
     const { rows } = await db.query('DELETE FROM insumos WHERE id_insumo = $1 RETURNING *', [id]);
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Insumo not found' });
-      return;
+      throw new AppError('Insumo não encontrado.', 404);
     }
     res.json({ message: 'Insumo deleted successfully', insumo: rows[0] });
   } catch (error) {
@@ -90,14 +87,15 @@ export const registrarUso = async (req: Request, res: Response, next: NextFuncti
   try {
     const insumoCheck = await db.query('SELECT quantidade_estoque FROM insumos WHERE id_insumo = $1', [id_insumo]);
     if (insumoCheck.rows.length === 0) {
-      res.status(404).json({ error: 'Insumo not found' });
-      return;
+      throw new AppError('Insumo não encontrado.', 404);
     }
 
     const currentStock = insumoCheck.rows[0].quantidade_estoque;
     if (currentStock < quantidade_usada) {
-      res.status(400).json({ error: `Insufficient stock of insumo. Stock: ${currentStock}, Requested: ${quantidade_usada}` });
-      return;
+      throw new AppError(
+        `Estoque insuficiente do insumo. Disponível: ${currentStock}, solicitado: ${quantidade_usada}.`,
+        400
+      );
     }
 
     const queryText = `

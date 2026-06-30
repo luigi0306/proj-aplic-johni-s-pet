@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as db from '../config/db';
+import { AppError } from '../errors/AppError';
 
 interface ProdutoVendidoInput {
   id_produto: number;
@@ -79,12 +80,15 @@ export const criarVenda = async (req: Request, res: Response, next: NextFunction
       // 2.1 Fetch current product stock
       const prodResult = await client.query('SELECT estoque_atual, nome FROM produto WHERE id_produto = $1 FOR UPDATE', [id_produto]);
       if (prodResult.rows.length === 0) {
-        throw new Error(`Product with ID ${id_produto} not found.`);
+        throw new AppError(`Produto com ID ${id_produto} não encontrado.`, 404);
       }
 
       const product = prodResult.rows[0];
       if (product.estoque_atual < quantidade) {
-        throw new Error(`Insufficient stock for product: ${product.nome}. Stock available: ${product.estoque_atual}, requested: ${quantidade}.`);
+        throw new AppError(
+          `Estoque insuficiente para o produto "${product.nome}". Disponível: ${product.estoque_atual}, solicitado: ${quantidade}.`,
+          400
+        );
       }
 
       // 2.2 Deduct stock
@@ -108,9 +112,9 @@ export const criarVenda = async (req: Request, res: Response, next: NextFunction
       ...newVenda,
       produtos
     });
-  } catch (error: any) {
+  } catch (error) {
     await client.query('ROLLBACK');
-    res.status(400).json({ error: error.message });
+    next(error);
   } finally {
     client.release();
   }

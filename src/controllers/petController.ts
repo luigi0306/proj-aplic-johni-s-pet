@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as db from '../config/db';
+import { AppError } from '../errors/AppError';
 
 export const listarPets = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -15,8 +16,7 @@ export const buscarPetPorId = async (req: Request, res: Response, next: NextFunc
   try {
     const { rows } = await db.query('SELECT * FROM pet WHERE id_pet = $1', [id]);
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Pet not found' });
-      return;
+      throw new AppError('Pet não encontrado.', 404);
     }
     res.json(rows[0]);
   } catch (error) {
@@ -29,8 +29,7 @@ export const criarPet = async (req: Request, res: Response, next: NextFunction):
   try {
     const clientCheck = await db.query('SELECT 1 FROM cliente WHERE id_cliente = $1', [id_cliente]);
     if (clientCheck.rows.length === 0) {
-      res.status(400).json({ error: 'Invalid client ID. Client must exist to register a pet.' });
-      return;
+      throw new AppError('ID do cliente inválido. O cliente não existe.', 400);
     }
 
     const queryText = `
@@ -53,15 +52,13 @@ export const atualizarPet = async (req: Request, res: Response, next: NextFuncti
     if (id_cliente) {
       const clientCheck = await db.query('SELECT 1 FROM cliente WHERE id_cliente = $1', [id_cliente]);
       if (clientCheck.rows.length === 0) {
-        res.status(400).json({ error: 'Invalid client ID.' });
-        return;
+        throw new AppError('ID do cliente inválido.', 400);
       }
     }
 
     const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
     if (fields.length === 0) {
-      res.status(400).json({ error: 'Nenhum campo para atualização foi enviado.' });
-      return;
+      throw new AppError('Nenhum campo para atualização foi enviado.', 400);
     }
     const queryText = `
       UPDATE pet
@@ -71,8 +68,7 @@ export const atualizarPet = async (req: Request, res: Response, next: NextFuncti
     `;
     const { rows } = await db.query(queryText, [...Object.values(updates), id]);
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Pet not found' });
-      return;
+      throw new AppError('Pet não encontrado.', 404);
     }
     res.json(rows[0]);
   } catch (error) {
@@ -85,8 +81,7 @@ export const deletarPet = async (req: Request, res: Response, next: NextFunction
   try {
     const { rows } = await db.query('DELETE FROM pet WHERE id_pet = $1 RETURNING *', [id]);
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Pet not found' });
-      return;
+      throw new AppError('Pet não encontrado.', 404);
     }
     res.json({ message: 'Pet deleted successfully', pet: rows[0] });
   } catch (error) {
@@ -97,8 +92,7 @@ export const deletarPet = async (req: Request, res: Response, next: NextFunction
 export const pesquisarPetsPorNome = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { nome } = req.query;
   if (!nome || typeof nome !== 'string' || nome.trim() === '') {
-    res.status(400).json({ error: 'Query param "nome" é obrigatório.' });
-    return;
+    throw new AppError('Query param "nome" é obrigatório.', 400);
   }
   try {
     const { rows } = await db.query(
