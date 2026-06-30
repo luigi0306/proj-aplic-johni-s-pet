@@ -3,7 +3,8 @@ id_cliente SERIAL PRIMARY KEY,
 cpf VARCHAR(14) NOT NULL,
 nome VARCHAR(100) NOT NULL,
 telefone VARCHAR(15) NOT NULL,
-endereco VARCHAR(100) NOT NULL
+endereco VARCHAR(100) NOT NULL;
+email VARCHAR(50) NOT NULL UNIQUE;
 );
 
 CREATE TYPE tipo_porte AS ENUM ('Pequeno', 'Médio', 'Grande');
