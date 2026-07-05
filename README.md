@@ -1,92 +1,73 @@
-# Johni's Pet API
+# CHEW!! 🐾
 
-API REST desenvolvida para a disciplina de **Projeto Aplicado para Banco de Dados**.
+Site de e-commerce e serviços para pet shop, desenvolvido em **React + Vite**, com foco em experiência de usuário fofa, moderna e funcional.
 
-O projeto simula o gerenciamento de um pet shop, permitindo o cadastro e controle de clientes, pets, funcionários, serviços, agendamentos, produtos, vendas, insumos, prontuários e animais para adoção.
-
----
-
-## Tecnologias utilizadas
-
-* Node.js
-* TypeScript
-* Express
-* PostgreSQL
-* Docker Compose
-* Zod
-* dotenv
-* CORS
-
-Frontend: React + Vite
+Projeto pessoal de portfólio, desenvolvido como parte da disciplina de Projeto Aplicado para Banco de Dados/Sistemas — a parte de **frontend** do sistema CHEW!!.
 
 ---
 
-## Funcionalidades
+## 🚀 Tecnologias utilizadas
 
-O sistema possui operações de cadastro, consulta, atualização e exclusão para os principais módulos do pet shop:
-
-* Clientes
-* Pets
-* Funcionários
-* Serviços
-* Agendamentos
-* Produtos
-* Vendas
-* Insumos
-* Prontuários
-* Animais para adoção
-
-Além disso, o banco de dados possui relacionamentos entre entidades, tabelas associativas, tipos enumerados e regras automatizadas para controle de insumos.
+* React 19
+* Vite
+* React Router DOM
+* CSS-in-JS (inline styles)
+* LocalStorage (persistência temporária de carrinho, login e pedidos)
 
 ---
 
-## Estrutura do projeto
+## ✨ Funcionalidades
+
+### Páginas
+* **Home** — hero animado, carrossel de categorias, destaques de serviços, depoimentos de clientes
+* **Veterinária** — consultas, vacinas, destaques do serviço com cards interativos
+* **Tosa e Banho** — serviços de banho, tosa e coloração de pelos
+* **Adoção** — catálogo de pets disponíveis, seção de apadrinhamento
+* **Produtos** — catálogo completo por categoria (cachorro, gato, pássaro, hamster), com seções de ração, banho, brinquedos, acessórios e roupinhas
+* **Login/Cadastro** — autenticação simulada no frontend, com formulários de entrar e criar conta
+* **Carrinho** — carrinho de compras completo, com escolha de método de pagamento (cartão, Pix, boleto) e confirmação de pedido
+
+### Recursos técnicos
+* Autenticação simulada via `localStorage`, com proteção de rotas (o carrinho exige login e redireciona automaticamente)
+* Carrinho de compras persistente entre páginas
+* Menus suspensos (dropdown) de navegação
+* Animações de hover, zoom e transições suaves em cards e imagens
+* Design responsivo com paleta de cores e tipografia customizadas por seção
+
+---
+
+## 📁 Estrutura do projeto
 
 ```text
-proj-aplic-johni-s-pet/
+chew/
+│
+├── public/
+│   └── imagens/          # Fotos de produtos, pets, serviços, etc.
 │
 ├── src/
-│   ├── config/          # Configuração de banco de dados
-│   ├── controllers/     # Lógica das operações da API
-│   ├── errors/          # Tratamento de erros
-│   ├── middlewares/     # Validações e interceptadores
-│   ├── routes/          # Rotas da aplicação
-│   ├── schemas/         # Schemas de validação com Zod
-│   ├── app.ts           # Configuração do Express
-│   └── server.ts        # Inicialização do servidor
+│   ├── components/       # Componentes reutilizáveis (Reveal, BackToTop)
+│   ├── pages/            # Páginas do site (Home, Produtos, Carrinho, Login, etc.)
+│   ├── App.jsx           # Definição das rotas
+│   └── main.jsx          # Ponto de entrada da aplicação
 │
-├── scripts/             # Scripts auxiliares
-├── BANCO PET SHOP.sql   # Estrutura do banco de dados
-├── BANCO_PET_SHOP_DML.sql # Dados iniciais para testes
-├── docker-compose.yml   # Configuração do PostgreSQL com Docker
 ├── package.json
-└── tsconfig.json
+└── vite.config.js
 ```
 
 ---
 
-## Pré-requisitos
-
-Antes de executar o projeto, é necessário ter instalado:
-
-* Node.js 18 ou superior
-* Docker e Docker Compose
-* Git
-
----
-
-## Instalação
+## 🔧 Rodando o projeto localmente
 
 Clone o repositório:
 
 ```bash
-git clone https://github.com/luigi0306/proj-aplic-johni-s-pet.git
+git clone https://github.com/GioduarteDev/CHEEW-repsotorio-.git
 ```
 
 Acesse a pasta do projeto:
 
 ```bash
-cd proj-aplic-johni-s-pet
+cd CHEEW-repsotorio-
 ```
 
 Instale as dependências:
@@ -95,127 +76,36 @@ Instale as dependências:
 npm install
 ```
 
----
-
-## Configuração das variáveis de ambiente
-
-Crie um arquivo chamado `.env` na raiz do projeto:
-
-```env
-DATABASE_URL=postgres://postgres:postgrespassword@localhost:5432/petshop
-PORT=3000
-```
-
----
-
-## Banco de dados
-
-Inicie o PostgreSQL usando Docker:
-
-```bash
-docker compose up -d
-```
-
-Execute o script de criação e população do banco:
-
-```bash
-npm run db:setup
-```
-
----
-
-## Executando a aplicação (backend)
-
-Para iniciar em modo de desenvolvimento:
+Rode em modo de desenvolvimento:
 
 ```bash
 npm run dev
 ```
 
-A API estará disponível em:
+O site estará disponível em:
 
 ```text
-http://localhost:3000
+http://localhost:5173
 ```
 
-Para verificar se a aplicação está funcionando:
-
-```text
-GET /health
-```
-
----
-
-## Executando a aplicação (frontend)
-
-O frontend (CHEW!!) foi construído em React + Vite. Para rodar localmente:
+Para gerar a versão de produção:
 
 ```bash
-npm install
-npm run dev
+npm run build
+npm run preview
 ```
 
 ---
 
-## Principais endpoints
+## 🗄️ Próximos passos
 
-| Módulo              | Endpoint base         |
-| ------------------- | --------------------- |
-| Clientes            | `/api/clientes`       |
-| Pets                | `/api/pets`           |
-| Funcionários        | `/api/funcionarios`   |
-| Serviços            | `/api/servicos`       |
-| Agendamentos        | `/api/agendamentos`   |
-| Produtos            | `/api/produtos`       |
-| Vendas              | `/api/vendas`         |
-| Insumos             | `/api/insumos`        |
-| Prontuários         | `/api/prontuarios`    |
-| Animais para adoção | `/api/animais-adocao` |
+* Conectar o frontend a um backend próprio (API REST + banco de dados)
+* Autenticação real de usuários (com senha criptografada)
+* Persistência de pedidos e produtos em banco de dados
+* Deploy em produção (Vercel)
 
 ---
 
-## Exemplo de criação de cliente
+## 👩‍💻 Autora
 
-**POST** `/api/clientes`
-
-```json
-{
-  "cpf": "123.456.789-00",
-  "nome": "João Silva",
-  "telefone": "(61) 99999-9999",
-  "endereco": "Rua Exemplo, 123"
-}
-```
-
----
-
-## Objetivo acadêmico
-
-O projeto foi desenvolvido para aplicar conhecimentos de:
-
-* Modelagem de banco de dados relacional;
-* Criação de tabelas e relacionamentos;
-* Chaves primárias e estrangeiras;
-* Consultas SQL;
-* Operações CRUD;
-* Triggers e funções em PLpgSQL;
-* Desenvolvimento de API REST;
-* Validação de dados;
-* Integração entre backend e PostgreSQL.
-
----
-
-## Possíveis melhorias futuras
-
-* Implementação de autenticação com JWT;
-* Documentação interativa com Swagger;
-* Criação de testes automatizados;
-* Dashboard com indicadores de vendas e agendamentos;
-* Controle automático de estoque de produtos;
-* Deploy da API e do frontend em ambiente cloud.
-
----
-
-## Equipe
-
-Projeto desenvolvido para a disciplina de Projeto Aplicado para Banco de Dados.
+Desenvolvido por **Gio Duarte** como projeto de portfólio e trabalho acadêmico.
