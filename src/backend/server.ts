@@ -7,7 +7,7 @@ dotenv.config();
 const PORT = process.env.PORT || 3000;
 
 // Verify db connection before starting the server
-pool.query('SELECT NOW()', (err, res) => {
+pool.query('SELECT NOW()', (err, _res) => {
   if (err) {
     console.error('Failed to connect to the database on startup. Exiting...', err);
     process.exit(1);

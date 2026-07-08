@@ -1,93 +1,64 @@
-# Johni's Pet API
+# Johni's Pet
 
-API REST desenvolvida para a disciplina de **Projeto Aplicado para Banco de Dados**.
+Projeto acadêmico de pet shop com **backend em Node.js/Express/TypeScript**, **frontend em React + Vite** e **banco PostgreSQL**.
 
-O projeto simula o gerenciamento de um pet shop, permitindo o cadastro e controle de clientes, pets, funcionários, serviços, agendamentos, produtos, vendas, insumos, prontuários e animais para adoção.
+O sistema simula o gerenciamento de clientes, pets, funcionários, serviços, agendamentos, produtos, vendas, insumos, prontuários e animais para adoção.
 
----
+## Tecnologias
 
-## Tecnologias utilizadas
+- Node.js
+- TypeScript
+- Express
+- PostgreSQL
+- Docker Compose
+- Zod
+- React
+- Vite
 
-* Node.js
-* TypeScript
-* Express
-* PostgreSQL
-* Docker Compose
-* Zod
-* dotenv
-* CORS
-
-Frontend: React + Vite
-
----
-
-## Funcionalidades
-
-O sistema possui operações de cadastro, consulta, atualização e exclusão para os principais módulos do pet shop:
-
-* Clientes
-* Pets
-* Funcionários
-* Serviços
-* Agendamentos
-* Produtos
-* Vendas
-* Insumos
-* Prontuários
-* Animais para adoção
-
-Além disso, o banco de dados possui relacionamentos entre entidades, tabelas associativas, tipos enumerados e regras automatizadas para controle de insumos.
-
----
-
-## Estrutura do projeto
+## Estrutura de pastas
 
 ```text
 proj-aplic-johni-s-pet/
+├── database/              # Scripts SQL do banco de dados
+│   ├── schema.sql         # Estrutura do banco
+│   └── seed.sql           # Dados iniciais para testes
+│
+├── public/                # Arquivos públicos servidos pelo frontend
+│   ├── favicon.svg
+│   ├── icons.svg
+│   └── imagens/           # Imagens usadas nas telas
+│
+├── scripts/               # Scripts auxiliares do projeto
+│   ├── setup_db.ts        # Aplica o schema no PostgreSQL
+│   └── test_validation.ts # Testes manuais da API
 │
 ├── src/
-│   ├── config/          # Configuração de banco de dados
-│   ├── controllers/     # Lógica das operações da API
-│   ├── errors/          # Tratamento de erros
-│   ├── middlewares/     # Validações e interceptadores
-│   ├── routes/          # Rotas da aplicação
-│   ├── schemas/         # Schemas de validação com Zod
-│   ├── app.ts           # Configuração do Express
-│   └── server.ts        # Inicialização do servidor
+│   ├── backend/           # API REST
+│   │   ├── config/        # Configuração do banco
+│   │   ├── controllers/   # Regras das operações da API
+│   │   ├── errors/        # Erros customizados
+│   │   ├── middlewares/   # Middlewares e validações
+│   │   ├── routes/        # Rotas HTTP
+│   │   ├── schemas/       # Schemas de validação com Zod
+│   │   ├── app.ts         # Configuração do Express
+│   │   └── server.ts      # Inicialização do servidor
+│   │
+│   └── frontend/          # Interface React
+│       ├── assets/        # Assets importados pelo React
+│       ├── components/    # Componentes reutilizáveis
+│       ├── pages/         # Páginas da aplicação
+│       ├── App.jsx        # Rotas da interface
+│       ├── main.jsx       # Entrada do Vite
+│       └── index.css      # Estilos globais
 │
-├── scripts/             # Scripts auxiliares
-├── BANCO PET SHOP.sql   # Estrutura do banco de dados
-├── BANCO_PET_SHOP_DML.sql # Dados iniciais para testes
-├── docker-compose.yml   # Configuração do PostgreSQL com Docker
-├── package.json
-└── tsconfig.json
+├── docker-compose.yml     # PostgreSQL local via Docker
+├── index.html             # HTML base do Vite
+├── package.json           # Scripts e dependências
+├── tsconfig.json          # Configuração TypeScript do backend
+└── vite.config.js         # Configuração do frontend
 ```
 
----
-
-## Pré-requisitos
-
-Antes de executar o projeto, é necessário ter instalado:
-
-* Node.js 18 ou superior
-* Docker e Docker Compose
-* Git
-
----
-
-## Instalação
-
-Clone o repositório:
-
-```bash
-git clone https://github.com/luigi0306/proj-aplic-johni-s-pet.git
-```
-
-Acesse a pasta do projeto:
-
-```bash
-cd proj-aplic-johni-s-pet
-```
+## Como rodar
 
 Instale as dependências:
 
@@ -95,127 +66,62 @@ Instale as dependências:
 npm install
 ```
 
----
-
-## Configuração das variáveis de ambiente
-
-Crie um arquivo chamado `.env` na raiz do projeto:
+Crie um arquivo `.env` na raiz do projeto:
 
 ```env
 DATABASE_URL=postgres://postgres:postgrespassword@localhost:5432/petshop
 PORT=3000
 ```
 
----
-
-## Banco de dados
-
-Inicie o PostgreSQL usando Docker:
+Suba o banco de dados:
 
 ```bash
 docker compose up -d
 ```
 
-Execute o script de criação e população do banco:
+Crie a estrutura do banco:
 
 ```bash
 npm run db:setup
 ```
 
----
-
-## Executando a aplicação (backend)
-
-Para iniciar em modo de desenvolvimento:
+Inicie backend e frontend juntos:
 
 ```bash
 npm run dev
 ```
 
-A API estará disponível em:
+Por padrão:
 
-```text
-http://localhost:3000
-```
+- API: `http://localhost:3000`
+- Frontend: `http://localhost:5173`
+- Healthcheck: `GET /health`
 
-Para verificar se a aplicação está funcionando:
+## Scripts úteis
 
-```text
-GET /health
-```
-
----
-
-## Executando a aplicação (frontend)
-
-O frontend (CHEW!!) foi construído em React + Vite. Para rodar localmente:
-
-```bash
-npm install
-npm run dev
-```
-
----
+- `npm run dev`: inicia backend e frontend em modo desenvolvimento.
+- `npm run dev:backend`: inicia apenas a API.
+- `npm run dev:frontend`: inicia apenas o Vite.
+- `npm run build`: compila o backend TypeScript.
+- `npm run build:frontend`: gera o build do frontend.
+- `npm run db:setup`: aplica `database/schema.sql` no PostgreSQL.
+- `npm run lint`: executa o linter.
 
 ## Principais endpoints
 
-| Módulo              | Endpoint base         |
-| ------------------- | --------------------- |
-| Clientes            | `/api/clientes`       |
-| Pets                | `/api/pets`           |
-| Funcionários        | `/api/funcionarios`   |
-| Serviços            | `/api/servicos`       |
-| Agendamentos        | `/api/agendamentos`   |
-| Produtos            | `/api/produtos`       |
-| Vendas              | `/api/vendas`         |
-| Insumos             | `/api/insumos`        |
-| Prontuários         | `/api/prontuarios`    |
+| Módulo | Endpoint base |
+| --- | --- |
+| Clientes | `/api/clientes` |
+| Pets | `/api/pets` |
+| Funcionários | `/api/funcionarios` |
+| Serviços | `/api/servicos` |
+| Agendamentos | `/api/agendamentos` |
+| Produtos | `/api/produtos` |
+| Vendas | `/api/vendas` |
+| Insumos | `/api/insumos` |
+| Prontuários | `/api/prontuarios` |
 | Animais para adoção | `/api/animais-adocao` |
-
----
-
-## Exemplo de criação de cliente
-
-**POST** `/api/clientes`
-
-```json
-{
-  "cpf": "123.456.789-00",
-  "nome": "João Silva",
-  "telefone": "(61) 99999-9999",
-  "endereco": "Rua Exemplo, 123"
-}
-```
-
----
 
 ## Objetivo acadêmico
 
-O projeto foi desenvolvido para aplicar conhecimentos de:
-
-* Modelagem de banco de dados relacional;
-* Criação de tabelas e relacionamentos;
-* Chaves primárias e estrangeiras;
-* Consultas SQL;
-* Operações CRUD;
-* Triggers e funções em PLpgSQL;
-* Desenvolvimento de API REST;
-* Validação de dados;
-* Integração entre backend e PostgreSQL.
-
----
-
-## Possíveis melhorias futuras
-
-* Implementação de autenticação com JWT;
-* Documentação interativa com Swagger;
-* Criação de testes automatizados;
-* Dashboard com indicadores de vendas e agendamentos;
-* Controle automático de estoque de produtos;
-* Deploy da API e do frontend em ambiente cloud.
-
----
-
-## Equipe
-
-Projeto desenvolvido para a disciplina de Projeto Aplicado para Banco de Dados.
+O projeto foi desenvolvido para praticar modelagem relacional, criação de tabelas, chaves primárias e estrangeiras, consultas SQL, triggers, funções em PL/pgSQL, API REST, validação de dados e integração entre backend, frontend e PostgreSQL.

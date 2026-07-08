@@ -2,14 +2,14 @@
   "name": "petshop-project",
   "version": "1.0.0",
   "description": "Petshop project with Express backend and React + Vite frontend",
-  "main": "dist/src/server.js",
+  "main": "dist/src/backend/server.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "nodemon --exec ts-node src/server.ts",
+    "dev:backend": "nodemon --exec ts-node src/backend/server.ts",
     "dev:frontend": "vite",
     "build": "tsc",
     "build:frontend": "vite build",
-    "start": "node dist/src/server.js",
+    "start": "node dist/src/backend/server.js",
     "db:setup": "ts-node scripts/setup_db.ts",
     "lint": "oxlint",
     "preview": "vite preview"

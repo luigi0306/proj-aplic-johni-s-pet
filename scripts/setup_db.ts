@@ -1,12 +1,12 @@
 import fs from 'fs';
 import path from 'path';
-import { pool } from '../src/config/db';
+import { pool } from '../src/backend/config/db';
 
 async function setupDatabase() {
-  const sqlFilePath = path.join(__dirname, '..', 'BANCO PET SHOP.sql');
+  const sqlFilePath = path.join(__dirname, '..', 'database', 'schema.sql');
   
   try {
-    console.log('Reading BANCO PET SHOP.sql...');
+    console.log('Reading database/schema.sql...');
     const sqlContent = fs.readFileSync(sqlFilePath, 'utf8');
     
     console.log('Applying database schema to PostgreSQL...');

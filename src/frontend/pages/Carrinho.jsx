@@ -24,7 +24,7 @@ function Carrinho() {
       try { localStorage.setItem('chew_after_login', '/carrinho') } catch {}
       navigate('/login')
     }
-  }, [])
+  }, [navigate])
   
 
   function inc(id) { const c = loadCart(); if (c[id]) { c[id].qty++; saveCart(c); setCart({ ...c }) } }

@@ -29,7 +29,7 @@ function Agendar() {
       try { localStorage.setItem('chew_after_login', '/agendar') } catch {}
       navigate('/login')
     }
-  }, [])
+  }, [navigate])
 
   const { y, m } = ym
   const today = new Date(); today.setHours(0, 0, 0, 0)
