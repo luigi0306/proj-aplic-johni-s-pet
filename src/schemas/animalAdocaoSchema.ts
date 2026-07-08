@@ -18,3 +18,17 @@ export const criarAnimalAdocaoSchema = z.object({
 });
 
 export const atualizarAnimalAdocaoSchema = criarAnimalAdocaoSchema.partial();
+
+export const filtrarAnimaisAdocaoSchema = z.object({
+  nome:        z.string().optional(),
+  raca:        z.string().optional(),
+  porte:       z.enum(['Pequeno', 'Médio', 'Grande'], {
+    message: 'Porte inválido. Escolha entre: Pequeno, Médio, Grande'
+  }).optional(),
+  faixa_etaria: z.enum(['Filhote', 'Adulto', 'Idoso'], {
+    message: 'Faixa etária inválida. Escolha entre: Filhote, Adulto, Idoso'
+  }).optional(),
+  status: z.enum(['Disponível', 'Em Tratamento', 'Adotado'], {
+    message: 'Status inválido. Escolha entre: Disponível, Em Tratamento, Adotado'
+  }).optional(),
+});

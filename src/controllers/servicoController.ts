@@ -4,7 +4,31 @@ import { AppError } from '../errors/AppError';
 
 export const listarServicos = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { rows } = await db.query('SELECT * FROM servico ORDER BY id_servico DESC');
+    const { nome, preco_min, preco_max } = req.query as {
+      nome?: string; preco_min?: string; preco_max?: string;
+    };
+
+    const conditions: string[] = [];
+    const params: any[] = [];
+
+    if (nome) {
+      params.push(`%${nome.trim()}%`);
+      conditions.push(`nome ILIKE $${params.length}`);
+    }
+    if (preco_min !== undefined && preco_min !== '') {
+      params.push(parseFloat(preco_min));
+      conditions.push(`preco_base >= $${params.length}`);
+    }
+    if (preco_max !== undefined && preco_max !== '') {
+      params.push(parseFloat(preco_max));
+      conditions.push(`preco_base <= $${params.length}`);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const { rows } = await db.query(
+      `SELECT * FROM servico ${where} ORDER BY id_servico DESC`,
+      params
+    );
     res.json(rows);
   } catch (error) {
     next(error);

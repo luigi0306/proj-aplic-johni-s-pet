@@ -6,3 +6,15 @@ export const criarServicoSchema = z.object({
 });
 
 export const atualizarServicoSchema = criarServicoSchema.partial();
+
+export const filtrarServicosSchema = z.object({
+  nome:      z.string().optional(),
+  preco_min: z.preprocess(
+    (v) => (v !== undefined && v !== '' ? parseFloat(v as string) : undefined),
+    z.number().nonnegative('Preço mínimo não pode ser negativo')
+  ).optional(),
+  preco_max: z.preprocess(
+    (v) => (v !== undefined && v !== '' ? parseFloat(v as string) : undefined),
+    z.number().nonnegative('Preço máximo não pode ser negativo')
+  ).optional(),
+});

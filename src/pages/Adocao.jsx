@@ -11,7 +11,7 @@ const ctaBtn = (bg, color) => ({
   fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color, background: bg,
   textDecoration: 'none', borderRadius: 14, padding: '14px 32px',
 })
- 
+
 
 const PETS = [
   { name: 'Amora', age: '2 anos', tag: 'GATA', tagColor: '#D06A8E', img: '/imagens/amoradoc.jpg', desc: 'Carinhosa, adora um colo quentinho e soneca ao sol.' },
@@ -33,7 +33,7 @@ function Adocao() {
     <div style={{ background: '#EA9CAF', minHeight: '100vh', display: 'flex', justifyContent: 'center', fontFamily: "'Nunito', sans-serif" }}>
       <div style={{ width: '100%', maxWidth: 1180, background: '#EA9CAF', position: 'relative' }}>
 
-        
+
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', background: '#fbb6c4', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(190,140,140,.2)' }}>
           <Link to="/" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 34, textDecoration: 'none', letterSpacing: '.5px', color: '#16313b' }}>CHEW!!</Link>
           <nav style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -56,7 +56,7 @@ function Adocao() {
           </nav>
         </header>
 
-        
+
         <Reveal>
           <section style={{ display: 'flex', alignItems: 'center', gap: 40, padding: '54px 40px 30px' }}>
             <div style={{ flex: 1, textAlign: 'left' }}>
@@ -69,17 +69,17 @@ function Adocao() {
               </div>
             </div>
 
-            
+
             <div style={{ flex: '0 0 300px', height: 300, borderRadius: 30, overflow: 'hidden', border: '7px solid #fff', boxShadow: '0 18px 40px rgba(208,106,142,.22)', transform: 'rotate(3deg)', transition: 'transform .35s cubic-bezier(.2,.8,.3,1.4)', cursor: 'pointer' }}
               onMouseEnter={(e) => { e.currentTarget.style.transform = 'rotate(0deg) scale(1.04)' }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = 'rotate(3deg) scale(1)' }}>
               <img src="/imagens/adocao.jpg" alt="Adoção" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             </div>
-            
+
           </section>
         </Reveal>
 
-        
+
         <Reveal>
           <section style={{ display: 'flex', justifyContent: 'center', gap: 18, padding: '18px 40px 40px', flexWrap: 'wrap' }}>
             <div style={{ background: '#EED8D5', borderRadius: 22, padding: '20px 34px', textAlign: 'center', minWidth: 150 }}>
