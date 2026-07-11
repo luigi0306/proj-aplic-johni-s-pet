@@ -1,6 +1,53 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Reveal from '../components/Reveal.jsx'
+
+function useParallax(speed) {
+  const [offset, setOffset] = useState(0)
+  useEffect(() => {
+    const onScroll = () => setOffset(window.scrollY * speed)
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [speed])
+  return offset
+}
+
+// card que aparece com fade + zoom quando entra na tela durante o scroll
+function FadeZoomCard({ children, delay = 0 }) {
+  const ref = useRef(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisible(true)
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.15 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'scale(1)' : 'scale(0.9)',
+        transition: `opacity .6s ease ${delay}ms, transform .6s ease ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  )
+}
 
 const navStyle = { fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', textDecoration: 'none', padding: '8px 16px', borderRadius: 30, background: 'rgba(255,255,255,.55)' }
 const footLink = { color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 600 }
@@ -137,6 +184,7 @@ const CATALOG = [
 function loadCart() { try { return JSON.parse(localStorage.getItem('chew_cart') || '{}') } catch { return {} } }
 function saveCart(c) { try { localStorage.setItem('chew_cart', JSON.stringify(c)) } catch {} }
 function isLogged() { try { return localStorage.getItem('chew_logged_in') === '1' } catch { return false } }
+function doLogout() { try { localStorage.removeItem('chew_logged_in') } catch {} }
 
 function Produtos() {
   const navigate = useNavigate()
@@ -144,6 +192,8 @@ function Produtos() {
   const [cart, setCart] = useState(loadCart())
   const [cartOpen, setCartOpen] = useState(false)
   const [svcMenu, setSvcMenu] = useState(false)
+  const [logged, setLogged] = useState(isLogged())
+  const parallaxOffset = useParallax(0.35)
 
   function add(p) {
     if (!isLogged()) { navigate('/login'); return }
@@ -155,6 +205,7 @@ function Produtos() {
   }
   function inc(id) { const c = loadCart(); if (c[id]) { c[id].qty++; saveCart(c); setCart({ ...c }) } }
   function dec(id) { const c = loadCart(); if (c[id]) { c[id].qty--; if (c[id].qty <= 0) delete c[id]; saveCart(c); setCart({ ...c }) } }
+  function handleLogout() { doLogout(); setLogged(false) }
 
   const ids = Object.keys(cart)
   const count = ids.reduce((a, id) => a + cart[id].qty, 0)
@@ -167,9 +218,9 @@ function Produtos() {
     <div style={{ background: '#F7F4EE', minHeight: '100vh', display: 'flex', justifyContent: 'center', fontFamily: "'Nunito', sans-serif" }}>
       <div style={{ width: '100%', maxWidth: 1180, background: '#F7F4EE', position: 'relative' }}>
 
-        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', background: '#FFD57C', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(214,168,70,.25)' }}>
+        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', background: '#FFD57C', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(214,168,70,.25)', flexWrap: 'wrap', gap: 12 }}>
           <Link to="/" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 34, textDecoration: 'none', letterSpacing: '.5px', color: '#16313b' }}>CHEW!!</Link>
-          <nav style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <nav style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }} onMouseEnter={() => setSvcMenu(true)} onMouseLeave={() => setSvcMenu(false)}>
               <Link to="/servicos" style={navStyle}>Serviços</Link>
               {svcMenu && (
@@ -183,8 +234,13 @@ function Produtos() {
             </div>
             <Link to="/adocao" style={navStyle}>Adoção</Link>
             <Link to="/produtos" style={{ ...navStyle, color: '#fff', background: '#16313b' }}>Produtos</Link>
-            <Link to="/login" style={navStyle}>Cadastro</Link>
-            <Link to="/login" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', textDecoration: 'none', border: '2px solid #16313b', borderRadius: 30, padding: '7px 20px' }}>Entre</Link>
+            {!logged && <Link to="/login" style={navStyle}>Cadastro</Link>}
+            {!logged && (
+              <Link to="/login" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', textDecoration: 'none', border: '2px solid #16313b', borderRadius: 30, padding: '7px 20px' }}>Entre</Link>
+            )}
+            {logged && (
+              <button onClick={handleLogout} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', background: 'transparent', border: '2px solid #16313b', borderRadius: 30, padding: '7px 20px', cursor: 'pointer' }}>Sair</button>
+            )}
             <button onClick={() => setCartOpen(true)} style={{ position: 'relative', width: 46, height: 46, borderRadius: '50%', border: 'none', background: '#16313b', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="20" r="1.4" /><circle cx="18" cy="20" r="1.4" /><path d="M2 3h3l2.4 12.4a1.5 1.5 0 0 0 1.5 1.2h8.2a1.5 1.5 0 0 0 1.5-1.2L21.5 7H6" /></svg>
               {count > 0 && <span style={{ position: 'absolute', top: -4, right: -4, minWidth: 20, height: 20, padding: '0 5px', borderRadius: 20, background: '#E8530E', color: '#fff', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #FFD57C' }}>{count}</span>}
@@ -193,14 +249,14 @@ function Produtos() {
         </header>
 
         <Reveal>
-          <section style={{ margin: '8px 24px 0', borderRadius: 34, overflow: 'hidden', background: 'linear-gradient(135deg,#FFE3A8 0%,#FFD57C 100%)', padding: '46px 56px', display: 'flex', alignItems: 'center', gap: 40 }}>
-            <div style={{ flex: 1 }}>
+          <section style={{ margin: '8px 24px 0', borderRadius: 34, overflow: 'hidden', background: 'linear-gradient(135deg,#FFE3A8 0%,#FFD57C 100%)', padding: '46px 56px', display: 'flex', alignItems: 'center', gap: 40, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 280 }}>
               <div style={{ display: 'inline-block', background: '#fff', color: '#C58A12', fontWeight: 800, fontSize: 13, letterSpacing: '1px', padding: '7px 16px', borderRadius: 30, marginBottom: 16 }}>CHEW! STORE</div>
               <h1 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 800, fontSize: 54, lineHeight: 1, color: '#16313b', margin: '0 0 12px' }}>Tudo para o seu pet</h1>
               <p style={{ fontSize: 17, lineHeight: 1.55, color: '#5a4d2d', maxWidth: 440, margin: '0 0 24px' }}>Ração, petiscos, brinquedos e acessórios para cães, gatos, pássaros e hamsters. Qualidade que seu melhor amigo merece.</p>
               <a href="#catalogo" style={{ display: 'inline-block', fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#fff', background: '#E8530E', textDecoration: 'none', borderRadius: 14, padding: '14px 32px' }}>Ver catálogo</a>
             </div>
-            <div style={{ flex: '0 0 300px', height: 250, borderRadius: 26, overflow: 'hidden', border: '6px solid #fff', boxShadow: '0 18px 40px rgba(0,0,0,.18)' }}>
+            <div style={{ flex: '0 0 300px', height: 250, borderRadius: 26, overflow: 'hidden', border: '6px solid #fff', boxShadow: '0 18px 40px rgba(0,0,0,.18)', transform: `translateY(${-parallaxOffset}px)` }}>
               <img src="/imagens/produprin.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             </div>
           </section>
@@ -230,25 +286,27 @@ function Produtos() {
                   <span style={{ flex: 1, height: 2, background: '#e7e2d4', borderRadius: 2 }}></span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 22 }}>
-                  {sec.items.map((p) => (
-                    <div key={p.id} style={{ background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 10px 26px rgba(0,0,0,.07)', display: 'flex', flexDirection: 'column', transition: 'transform .3s, box-shadow .3s' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.boxShadow = '0 22px 40px rgba(0,0,0,.16)' }}
-                      onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 10px 26px rgba(0,0,0,.07)' }}>
-                      <div style={{ position: 'relative', height: 200, background: '#F4F1EA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
-                        <span style={{ position: 'absolute', top: 10, left: 10, background: CATS[p.cat].color, color: '#fff', fontWeight: 800, fontSize: 10, letterSpacing: '.5px', padding: '4px 10px', borderRadius: 30 }}>{CATS[p.cat].label}</span>
-                        {p.img
-  ? <img src={p.img} alt={p.name} loading="lazy" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }} />
-  : <span style={{ fontSize: 13, color: '#bbb' }}>foto em breve</span>}
-                      </div>
-                      <div style={{ padding: '14px 16px 18px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: '#aa9f88', textTransform: 'uppercase', letterSpacing: '.5px' }}>{p.kind}</span>
-                        <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#16313b', margin: '2px 0 10px', lineHeight: 1.2 }}>{p.name}</span>
-                        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                          <span style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 700, fontSize: 20, color: '#E8530E' }}>{money(p.price)}</span>
-                          <button onClick={() => add(p)} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 13, color: '#fff', background: '#16313b', border: 'none', cursor: 'pointer', borderRadius: 10, padding: '9px 14px' }}>+ Add</button>
+                  {sec.items.map((p, i) => (
+                    <FadeZoomCard key={p.id} delay={(i % 4) * 80}>
+                      <div style={{ background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 10px 26px rgba(0,0,0,.07)', display: 'flex', flexDirection: 'column', transition: 'transform .3s, box-shadow .3s' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.boxShadow = '0 22px 40px rgba(0,0,0,.16)' }}
+                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 10px 26px rgba(0,0,0,.07)' }}>
+                        <div style={{ position: 'relative', height: 200, background: '#F4F1EA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
+                          <span style={{ position: 'absolute', top: 10, left: 10, background: CATS[p.cat].color, color: '#fff', fontWeight: 800, fontSize: 10, letterSpacing: '.5px', padding: '4px 10px', borderRadius: 30 }}>{CATS[p.cat].label}</span>
+                          {p.img
+    ? <img src={p.img} alt={p.name} loading="lazy" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }} />
+    : <span style={{ fontSize: 13, color: '#bbb' }}>foto em breve</span>}
+                        </div>
+                        <div style={{ padding: '14px 16px 18px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: '#aa9f88', textTransform: 'uppercase', letterSpacing: '.5px' }}>{p.kind}</span>
+                          <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#16313b', margin: '2px 0 10px', lineHeight: 1.2 }}>{p.name}</span>
+                          <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                            <span style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 700, fontSize: 20, color: '#E8530E' }}>{money(p.price)}</span>
+                            <button onClick={() => add(p)} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 13, color: '#fff', background: '#16313b', border: 'none', cursor: 'pointer', borderRadius: 10, padding: '9px 14px' }}>+ Add</button>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </FadeZoomCard>
                   ))}
                 </div>
               </div>
@@ -258,7 +316,7 @@ function Produtos() {
 
         <footer style={{ background: '#123542', padding: '40px 44px' }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <nav style={{ display: 'flex', gap: 30 }}>
+            <nav style={{ display: 'flex', gap: 30, flexWrap: 'wrap' }}>
               <Link to="/sobre" style={footLink}>Sobre</Link>
               <Link to="/servicos" style={footLink}>Serviços</Link>
               <Link to="/adocao" style={footLink}>Adoção</Link>

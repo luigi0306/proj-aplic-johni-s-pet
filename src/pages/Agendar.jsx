@@ -10,6 +10,7 @@ const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 const ALL_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00']
 
 function isLogged() { try { return localStorage.getItem('chew_logged_in') === '1' } catch { return false } }
+function doLogout() { try { localStorage.removeItem('chew_logged_in') } catch {} }
 function getServico() { try { return new URLSearchParams(window.location.search).get('servico') || 'vet' } catch { return 'vet' } }
 const fmtDate = (d) => d.getDate() + ' de ' + MONTHS[d.getMonth()]
 
@@ -22,14 +23,21 @@ function Agendar() {
   const [sel, setSel] = useState(null)
   const [slot, setSlot] = useState(null)
   const [sent, setSent] = useState(false)
+  const [logged, setLogged] = useState(isLogged())
+  const [voltarCarrinho, setVoltarCarrinho] = useState(null)
 
-  // gate de login: se não estiver logado, manda pro login
   useEffect(() => {
     if (!isLogged()) {
       try { localStorage.setItem('chew_after_login', '/agendar') } catch {}
       navigate('/login')
     }
   }, [])
+
+  function handleLogout() {
+    doLogout()
+    setLogged(false)
+    navigate('/login')
+  }
 
   const { y, m } = ym
   const today = new Date(); today.setHours(0, 0, 0, 0)
@@ -58,21 +66,47 @@ function Agendar() {
       const arr = JSON.parse(localStorage.getItem('chew_appointments') || '[]')
       arr.push(rec); localStorage.setItem('chew_appointments', JSON.stringify(arr))
     } catch {}
+
+    // se a pessoa veio do carrinho (tinha uma consulta lá que precisou
+    // ser agendada primeiro), guarda o caminho de volta pra mostrar o
+    // botão na tela de sucesso.
+    try {
+      const voltar = localStorage.getItem('chew_after_agendamento')
+      if (voltar) {
+        setVoltarCarrinho(voltar)
+        localStorage.removeItem('chew_after_agendamento')
+      }
+    } catch {}
+
     setSent(true); window.scrollTo(0, 0)
   }
 
   return (
     <div style={{ background: '#F2FAFB', minHeight: '100vh', display: 'flex', justifyContent: 'center', fontFamily: "'Nunito', sans-serif" }}>
+      <style>{`
+        .chew-agendar-header-nav { flex-wrap: wrap; }
+        .chew-agendar-body { flex-wrap: wrap; }
+        .chew-agendar-body > div:first-child { min-width: 340px; }
+        .chew-agendar-body > div:last-child { min-width: 320px; }
+        .chew-agendar-dados-grid { grid-template-columns: 1fr 1fr; }
+        @media (max-width: 700px) {
+          .chew-agendar-dados-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       <div style={{ width: '100%', maxWidth: 1180, background: '#F2FAFB', position: 'relative' }}>
 
         {/* cabeçalho */}
-        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(120,183,118,.3)', background: '#C4EEB8' }}>
+        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(120,183,118,.3)', background: '#C4EEB8', flexWrap: 'wrap', gap: 12 }}>
           <Link to="/" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 34, textDecoration: 'none', letterSpacing: '.5px', color: '#16313b' }}>CHEW!!</Link>
-          <nav style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <nav className="chew-agendar-header-nav" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Link to="/servicos" style={navStyle}>Serviços</Link>
             <Link to="/veterinaria" style={{ ...navStyle, color: '#fff', background: '#1B888D' }}>Veterinária</Link>
             <Link to="/adocao" style={navStyle}>Adoção</Link>
-            <Link to="/login" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', textDecoration: 'none', border: '2px solid #16313b', borderRadius: 30, padding: '7px 20px' }}>Entre</Link>
+            {logged ? (
+              <button onClick={handleLogout} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', background: 'transparent', border: '2px solid #16313b', borderRadius: 30, padding: '7px 20px', cursor: 'pointer' }}>Sair</button>
+            ) : (
+              <Link to="/login" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', textDecoration: 'none', border: '2px solid #16313b', borderRadius: 30, padding: '7px 20px' }}>Entre</Link>
+            )}
           </nav>
         </header>
 
@@ -84,13 +118,13 @@ function Agendar() {
                 <Link to="/veterinaria" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 14, color: '#0E8C9E', textDecoration: 'none', marginBottom: 12 }}>← Voltar para a clínica</Link>
                 <div style={{ display: 'inline-block', background: '#fff', color: '#0E8C9E', fontWeight: 800, fontSize: 12, letterSpacing: '1.5px', padding: '7px 16px', borderRadius: 30, marginBottom: 14, boxShadow: '0 4px 12px rgba(14,140,158,.12)' }}>AGENDA ONLINE</div>
                 <h1 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 800, fontSize: 46, lineHeight: 1, color: '#16313b', margin: '0 0 10px' }}>{heading}</h1>
-                <p style={{ fontSize: 16, color: '#7a8a8d', margin: '0 auto', maxWidth: 480 }}>Escolha o dia e o horário ideais. Simples, rápido e sem filas. 🐾</p>
+                <p style={{ fontSize: 16, color: '#7a8a8d', margin: '0 auto', maxWidth: 480 }}>Escolha o dia e o horário ideais. Simples, rápido e sem filas.</p>
               </section>
             </Reveal>
 
             {/* agenda */}
             <Reveal>
-              <section style={{ padding: '24px 40px 60px', display: 'flex', gap: 26, alignItems: 'flex-start' }}>
+              <section className="chew-agendar-body" style={{ padding: '24px 40px 60px', display: 'flex', gap: 26, alignItems: 'flex-start' }}>
                 {/* calendario*/}
                 <div style={{ flex: '0 0 440px', background: '#fff', borderRadius: 26, padding: '26px 28px', boxShadow: '0 12px 32px rgba(0,0,0,.06)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
@@ -136,17 +170,17 @@ function Agendar() {
 
                   <div style={{ background: '#fff', borderRadius: 26, padding: '24px 26px', boxShadow: '0 12px 32px rgba(0,0,0,.06)' }}>
                     <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 18, color: '#16313b', margin: '0 0 16px' }}>Dados do atendimento</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 16px' }}>
-                      <div><label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#4a5558', marginBottom: 6 }}>Seu nome</label><input type="text" placeholder="Nome do tutor" style={{ width: '100%', height: 46, border: '1.5px solid #d8eaee', borderRadius: 12, padding: '0 14px', fontSize: 14 }} /></div>
-                      <div><label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#4a5558', marginBottom: 6 }}>Telefone</label><input type="tel" placeholder="(00) 00000-0000" style={{ width: '100%', height: 46, border: '1.5px solid #d8eaee', borderRadius: 12, padding: '0 14px', fontSize: 14 }} /></div>
-                      <div><label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#4a5558', marginBottom: 6 }}>Nome do pet</label><input type="text" placeholder="Ex: Amora" style={{ width: '100%', height: 46, border: '1.5px solid #d8eaee', borderRadius: 12, padding: '0 14px', fontSize: 14 }} /></div>
+                    <div className="chew-agendar-dados-grid" style={{ display: 'grid', gap: '14px 16px' }}>
+                      <div><label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#4a5558', marginBottom: 6 }}>Seu nome</label><input type="text" placeholder="Nome do tutor" style={{ width: '100%', height: 46, border: '1.5px solid #d8eaee', borderRadius: 12, padding: '0 14px', fontSize: 14, boxSizing: 'border-box' }} /></div>
+                      <div><label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#4a5558', marginBottom: 6 }}>Telefone</label><input type="tel" placeholder="(00) 00000-0000" style={{ width: '100%', height: 46, border: '1.5px solid #d8eaee', borderRadius: 12, padding: '0 14px', fontSize: 14, boxSizing: 'border-box' }} /></div>
+                      <div><label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#4a5558', marginBottom: 6 }}>Nome do pet</label><input type="text" placeholder="Ex: Amora" style={{ width: '100%', height: 46, border: '1.5px solid #d8eaee', borderRadius: 12, padding: '0 14px', fontSize: 14, boxSizing: 'border-box' }} /></div>
                       <div><label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#4a5558', marginBottom: 6 }}>{typeLabel}</label>
-                        <select ref={typeRef} style={{ width: '100%', height: 46, border: '1.5px solid #d8eaee', borderRadius: 12, padding: '0 14px', fontSize: 14 }}>
+                        <select ref={typeRef} style={{ width: '100%', height: 46, border: '1.5px solid #d8eaee', borderRadius: 12, padding: '0 14px', fontSize: 14, boxSizing: 'border-box' }}>
                           {typeOptions.map((o) => <option key={o}>{o}</option>)}
                         </select>
                       </div>
                       <div style={{ gridColumn: '1 / -1' }}><label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#4a5558', marginBottom: 6 }}>Espécie</label>
-                        <select style={{ width: '100%', height: 46, border: '1.5px solid #d8eaee', borderRadius: 12, padding: '0 14px', fontSize: 14 }}>
+                        <select style={{ width: '100%', height: 46, border: '1.5px solid #d8eaee', borderRadius: 12, padding: '0 14px', fontSize: 14, boxSizing: 'border-box' }}>
                           <option>Cão</option><option>Gato</option><option>Ave</option><option>Réptil</option><option>Roedor</option><option>Outro</option>
                         </select>
                       </div>
@@ -176,10 +210,20 @@ function Agendar() {
                 <div style={{ width: 96, height: 96, borderRadius: '50%', background: '#B8E8EE', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 22px' }}>
                   <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#0E8C9E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5L20 6" /></svg>
                 </div>
-                <h1 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 800, fontSize: 36, color: '#16313b', margin: '0 0 12px' }}>Agendamento confirmado! 🎉</h1>
+                <h1 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 800, fontSize: 36, color: '#16313b', margin: '0 0 12px' }}>Agendamento confirmado!</h1>
                 <p style={{ fontSize: 16, lineHeight: 1.6, color: '#7a8a8d', margin: '0 0 8px' }}>Seu horário está reservado para:</p>
                 <p style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 20, color: '#0E8C9E', margin: '0 0 26px' }}>{summary}</p>
+
+                {voltarCarrinho && (
+                  <div style={{ background: '#F2FAFB', borderRadius: 14, padding: '14px 18px', marginBottom: 22, fontSize: 14, color: '#4a5558' }}>
+                    Você ainda tem itens no carrinho esperando pagamento.
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                  {voltarCarrinho && (
+                    <Link to={voltarCarrinho} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#fff', background: '#E8530E', textDecoration: 'none', borderRadius: 13, padding: '13px 28px' }}>Voltar para o carrinho</Link>
+                  )}
                   <Link to="/veterinaria" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#fff', background: '#16313b', textDecoration: 'none', borderRadius: 13, padding: '13px 28px' }}>Voltar para a clínica</Link>
                   <Link to="/" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', background: '#F2FAFB', textDecoration: 'none', borderRadius: 13, padding: '13px 28px' }}>Início</Link>
                 </div>
@@ -191,7 +235,7 @@ function Agendar() {
         {/* RODAPÉ */}
         <footer style={{ background: '#123542', padding: '40px 44px' }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <nav style={{ display: 'flex', gap: 30 }}>
+            <nav style={{ display: 'flex', gap: 30, flexWrap: 'wrap' }}>
               <Link to="/sobre" style={footLink}>Sobre</Link>
               <Link to="/servicos" style={footLink}>Serviços</Link>
               <Link to="/veterinaria" style={footLink}>Veterinária</Link>
