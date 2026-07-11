@@ -22,7 +22,7 @@ app.get('/health', async (req: Request, res: Response): Promise<void> => {
 app.use('/api', apiRoutes);
 
 // Global Error Handler Middleware
-app.use((err: unknown, req: Request, res: Response, next: NextFunction): void => {
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction): void => {
   // Erro operacional lançado intencionalmente pela aplicação
   if (err instanceof AppError) {
     res.status(err.status).json({ error: { message: err.message } });

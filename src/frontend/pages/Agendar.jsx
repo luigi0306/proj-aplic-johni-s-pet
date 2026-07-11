@@ -31,7 +31,7 @@ function Agendar() {
       try { localStorage.setItem('chew_after_login', '/agendar') } catch {}
       navigate('/login')
     }
-  }, [])
+  }, [navigate])
 
   function handleLogout() {
     doLogout()

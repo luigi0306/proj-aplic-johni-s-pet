@@ -8,3 +8,16 @@ export const criarProdutoSchema = z.object({
 });
 
 export const atualizarProdutoSchema = criarProdutoSchema.partial();
+
+export const filtrarProdutosSchema = z.object({
+  nome:      z.string().optional(),
+  categoria: z.string().optional(),
+  preco_min: z.preprocess(
+    (v) => (v !== undefined && v !== '' ? parseFloat(v as string) : undefined),
+    z.number().nonnegative('Preço mínimo não pode ser negativo')
+  ).optional(),
+  preco_max: z.preprocess(
+    (v) => (v !== undefined && v !== '' ? parseFloat(v as string) : undefined),
+    z.number().nonnegative('Preço máximo não pode ser negativo')
+  ).optional(),
+});

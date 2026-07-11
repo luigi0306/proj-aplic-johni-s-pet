@@ -4,7 +4,35 @@ import { AppError } from '../errors/AppError';
 
 export const listarProdutos = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { rows } = await db.query('SELECT * FROM produto ORDER BY id_produto DESC');
+    const { nome, categoria, preco_min, preco_max } = req.query as {
+      nome?: string; categoria?: string; preco_min?: string; preco_max?: string;
+    };
+
+    const conditions: string[] = [];
+    const params: any[] = [];
+
+    if (nome) {
+      params.push(`%${nome.trim()}%`);
+      conditions.push(`nome ILIKE $${params.length}`);
+    }
+    if (categoria) {
+      params.push(categoria.trim());
+      conditions.push(`categoria = $${params.length}`);
+    }
+    if (preco_min !== undefined && preco_min !== '') {
+      params.push(parseFloat(preco_min));
+      conditions.push(`preco >= $${params.length}`);
+    }
+    if (preco_max !== undefined && preco_max !== '') {
+      params.push(parseFloat(preco_max));
+      conditions.push(`preco <= $${params.length}`);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const { rows } = await db.query(
+      `SELECT * FROM produto ${where} ORDER BY id_produto DESC`,
+      params
+    );
     res.json(rows);
   } catch (error) {
     next(error);

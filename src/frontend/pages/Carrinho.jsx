@@ -23,7 +23,7 @@ function Carrinho() {
       try { localStorage.setItem('chew_after_login', '/carrinho') } catch {}
       navigate('/login')
     }
-  }, [])
+  }, [navigate])
 
   function inc(id) { const c = loadCart(); if (c[id]) { c[id].qty++; saveCart(c); setCart({ ...c }) } }
   function dec(id) { const c = loadCart(); if (c[id]) { c[id].qty--; if (c[id].qty <= 0) delete c[id]; saveCart(c); setCart({ ...c }) } }
@@ -45,8 +45,6 @@ function Carrinho() {
   if (!logged) return null
 
   function pay() {
-    // itens de consulta/vacina (prefixo "vet:") precisam virar um
-    // agendamento antes — não são pagos direto aqui.
     const idsConsulta = ids.filter(function (id) { return id.startsWith('vet:') })
 
     if (idsConsulta.length > 0) {

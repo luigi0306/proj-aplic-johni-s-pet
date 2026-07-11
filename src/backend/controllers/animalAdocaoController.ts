@@ -4,7 +4,39 @@ import { AppError } from '../errors/AppError';
 
 export const listarAnimais = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { rows } = await db.query('SELECT * FROM animal_adocao ORDER BY id_animal_adocao DESC');
+    const { nome, raca, porte, faixa_etaria, status } = req.query as {
+      nome?: string; raca?: string; porte?: string; faixa_etaria?: string; status?: string;
+    };
+
+    const conditions: string[] = [];
+    const params: any[] = [];
+
+    if (nome) {
+      params.push(`%${nome.trim()}%`);
+      conditions.push(`nome ILIKE $${params.length}`);
+    }
+    if (raca) {
+      params.push(raca.trim());
+      conditions.push(`raca = $${params.length}`);
+    }
+    if (porte) {
+      params.push(porte);
+      conditions.push(`porte = $${params.length}`);
+    }
+    if (faixa_etaria) {
+      params.push(faixa_etaria);
+      conditions.push(`faixa_etaria = $${params.length}`);
+    }
+    if (status) {
+      params.push(status);
+      conditions.push(`status = $${params.length}`);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const { rows } = await db.query(
+      `SELECT * FROM animal_adocao ${where} ORDER BY id_animal_adocao DESC`,
+      params
+    );
     res.json(rows);
   } catch (error) {
     next(error);

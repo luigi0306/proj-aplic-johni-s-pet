@@ -21,3 +21,24 @@ export const validateBody = (schema: ZodTypeAny) => {
     }
   };
 };
+
+export const validateQuery = (schema: ZodTypeAny) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      req.query = await schema.parseAsync(req.query) as any;
+      next();
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({
+          error: 'Erro de validação',
+          details: error.issues.map(issue => ({
+            campo: issue.path.join('.'),
+            mensagem: issue.message
+          }))
+        });
+        return;
+      }
+      next(error);
+    }
+  };
+};
