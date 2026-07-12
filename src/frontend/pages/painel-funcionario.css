@@ -1,0 +1,429 @@
+:root {
+  --chew-navy-900: #16232e;
+  --chew-navy-800: #1c2f3a;
+  --chew-navy-700: #26373f;
+  --chew-card-login: #253e45;
+
+  --chew-teal: #4dc1b6;
+  --chew-teal-dark: #2d6b69;
+
+  --chew-orange: #eb5e28;
+  --chew-orange-hover: #d94f1c;
+
+  --chew-content-bg: #eef4f6;
+  --chew-white: #ffffff;
+  --chew-border: #d5e2e5;
+
+  --chew-text-dark: #16232e;
+  --chew-text-light: #eef4f6;
+  --chew-text-muted-dark: #8fa5ac;
+  --chew-text-muted-light: #5a6b70;
+
+  --chew-badge-agendado-bg: #d9efee;
+  --chew-badge-agendado-text: #2d6b69;
+  --chew-badge-confirmado-bg: #fff0b7;
+  --chew-badge-confirmado-text: #8a6d16;
+  --chew-badge-concluido-bg: #dcf0e2;
+  --chew-badge-concluido-text: #2f6b45;
+  --chew-badge-cancelado-bg: #f7dfe4;
+  --chew-badge-cancelado-text: #8a3348;
+
+  --chew-radius: 10px;
+  --chew-radius-lg: 16px;
+
+  --chew-paw-pattern-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='70' height='70' viewBox='0 0 70 70'%3E%3Cg transform='translate(8,8) rotate(15) scale(0.35)' fill='%234dc1b6' fill-opacity='0.12'%3E%3Cellipse cx='50' cy='65' rx='26' ry='22'/%3E%3Cellipse cx='22' cy='30' rx='11' ry='14'/%3E%3Cellipse cx='46' cy='18' rx='11' ry='14'/%3E%3Cellipse cx='72' cy='20' rx='11' ry='14'/%3E%3Cellipse cx='90' cy='38' rx='10' ry='13'/%3E%3C/g%3E%3C/svg%3E");
+  --chew-paw-pattern-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='70' height='70' viewBox='0 0 70 70'%3E%3Cg transform='translate(8,8) rotate(-10) scale(0.35)' fill='%23ffffff' fill-opacity='0.05'%3E%3Cellipse cx='50' cy='65' rx='26' ry='22'/%3E%3Cellipse cx='22' cy='30' rx='11' ry='14'/%3E%3Cellipse cx='46' cy='18' rx='11' ry='14'/%3E%3Cellipse cx='72' cy='20' rx='11' ry='14'/%3E%3Cellipse cx='90' cy='38' rx='10' ry='13'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.chew-login-page {
+  min-height: 100vh;
+  background-color: var(--chew-navy-900);
+  background-image: var(--chew-paw-pattern-dark);
+  background-repeat: repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  font-family: 'Nunito', sans-serif;
+}
+
+.chew-login-card {
+  background: var(--chew-card-login);
+  border-radius: var(--chew-radius-lg);
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 340px;
+}
+
+.chew-login-tag {
+  color: var(--chew-teal);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.chew-login-title {
+  font-family: 'Baloo 2', 'Nunito', sans-serif;
+  color: var(--chew-text-light);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.chew-login-field-label {
+  color: var(--chew-text-light);
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.chew-login-input {
+  width: 100%;
+  background: var(--chew-navy-700);
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  color: var(--chew-text-light);
+  font-size: 0.9rem;
+  margin-bottom: 1.2rem;
+  font-family: inherit;
+}
+
+.chew-login-input::placeholder {
+  color: var(--chew-text-muted-dark);
+}
+
+.chew-login-hint {
+  color: var(--chew-text-muted-dark);
+  font-size: 0.72rem;
+  margin: -0.8rem 0 1.2rem;
+}
+
+.chew-login-alert {
+  background: #492b2d;
+  border: 1px solid #6b3a3f;
+  color: #c07288;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  padding: 0.8rem;
+  margin-bottom: 1.2rem;
+  line-height: 1.4;
+}
+
+.chew-btn-orange {
+  width: 100%;
+  background: var(--chew-orange);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.chew-btn-orange:hover {
+  background: var(--chew-orange-hover);
+}
+
+.chew-painel {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'Nunito', sans-serif;
+}
+
+.chew-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background-color: var(--chew-navy-900);
+  background-image: var(--chew-paw-pattern-dark);
+  background-repeat: repeat;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.chew-sidebar-logo {
+  font-family: 'Baloo 2', 'Nunito', sans-serif;
+  color: var(--chew-text-light);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.chew-sidebar-subtitle {
+  color: var(--chew-text-muted-dark);
+  font-size: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.chew-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+}
+
+.chew-sidebar-item {
+  color: #a9bdc2;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.6rem 0.7rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.chew-sidebar-item:hover {
+  background: var(--chew-navy-800);
+  color: var(--chew-text-light);
+}
+
+.chew-sidebar-item.active {
+  background: var(--chew-content-bg);
+  color: var(--chew-text-dark);
+}
+
+.chew-sidebar-footer {
+  border-top: 1px solid var(--chew-navy-800);
+  padding-top: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.chew-sidebar-user {
+  color: var(--chew-text-light);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.chew-sidebar-role {
+  color: var(--chew-text-muted-dark);
+  font-size: 0.72rem;
+  margin-bottom: 0.7rem;
+}
+
+.chew-sidebar-logout {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--chew-navy-800);
+  color: var(--chew-text-light);
+  border-radius: 8px;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.chew-sidebar-logout:hover {
+  background: var(--chew-navy-800);
+}
+
+.chew-content {
+  flex: 1;
+  background-color: var(--chew-content-bg);
+  background-image: var(--chew-paw-pattern-light);
+  background-repeat: repeat;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.chew-content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.chew-content-title {
+  font-family: 'Baloo 2', 'Nunito', sans-serif;
+  color: var(--chew-text-dark);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.chew-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .chew-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chew-panel {
+  background: var(--chew-white);
+  border-radius: var(--chew-radius-lg);
+  padding: 1.5rem;
+}
+
+.chew-panel-title {
+  color: var(--chew-text-dark);
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+}
+
+.chew-field-label {
+  color: var(--chew-text-dark);
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.chew-input-dark {
+  width: 100%;
+  background: var(--chew-navy-900);
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  color: var(--chew-text-light);
+  font-size: 0.9rem;
+  margin-bottom: 1.1rem;
+  font-family: inherit;
+}
+
+.chew-input-dark::placeholder {
+  color: var(--chew-text-muted-dark);
+}
+
+select.chew-input-dark {
+  appearance: none;
+}
+
+.chew-textarea-dark {
+  width: 100%;
+  background: var(--chew-navy-900);
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  color: var(--chew-text-light);
+  font-size: 0.9rem;
+  margin-bottom: 1.1rem;
+  font-family: inherit;
+  min-height: 80px;
+  resize: vertical;
+}
+
+.chew-textarea-dark::placeholder {
+  color: var(--chew-text-muted-dark);
+}
+
+.chew-success-hint {
+  background: var(--chew-badge-concluido-bg);
+  color: var(--chew-badge-concluido-text);
+  font-size: 0.8rem;
+  border-radius: 8px;
+  padding: 0.8rem;
+  line-height: 1.4;
+  margin-top: -0.3rem;
+}
+
+.chew-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.chew-table th {
+  text-align: left;
+  color: var(--chew-text-dark);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--chew-border);
+}
+
+.chew-table td {
+  padding: 0.9rem 0.4rem;
+  font-size: 0.85rem;
+  color: var(--chew-text-dark);
+  border-bottom: 1px solid var(--chew-border);
+}
+
+.chew-table tr:last-child td {
+  border-bottom: none;
+}
+
+.chew-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+}
+
+.chew-badge.agendado {
+  background: var(--chew-badge-agendado-bg);
+  color: var(--chew-badge-agendado-text);
+}
+
+.chew-badge.confirmado {
+  background: var(--chew-badge-confirmado-bg);
+  color: var(--chew-badge-confirmado-text);
+}
+
+.chew-badge.concluido {
+  background: var(--chew-badge-concluido-bg);
+  color: var(--chew-badge-concluido-text);
+}
+
+.chew-badge.cancelado {
+  background: var(--chew-badge-cancelado-bg);
+  color: var(--chew-badge-cancelado-text);
+}
+
+.chew-badge.estoque-baixo {
+  color: var(--chew-badge-cancelado-text);
+  font-weight: 700;
+}
+
+.chew-atendimento-card {
+  border-bottom: 1px solid var(--chew-border);
+  padding: 0.9rem 0;
+}
+
+.chew-atendimento-card:last-child {
+  border-bottom: none;
+}
+
+.chew-atendimento-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.3rem;
+}
+
+.chew-atendimento-pet {
+  font-weight: 700;
+  color: var(--chew-text-dark);
+  font-size: 0.9rem;
+}
+
+.chew-atendimento-data {
+  color: var(--chew-text-muted-light);
+  font-size: 0.75rem;
+}
+
+.chew-atendimento-desc {
+  color: var(--chew-text-muted-light);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin-bottom: 0.3rem;
+}
+
+.chew-atendimento-autor {
+  color: var(--chew-teal-dark);
+  font-size: 0.78rem;
+  font-weight: 700;
+}

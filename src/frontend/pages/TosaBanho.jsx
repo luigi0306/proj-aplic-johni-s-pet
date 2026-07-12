@@ -1,6 +1,58 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Reveal from '../components/Reveal.jsx'
+
+function useParallax(speed) {
+  const [offset, setOffset] = useState(0)
+  useEffect(function () {
+    function onScroll() {
+      setOffset(window.scrollY * speed)
+    }
+    window.addEventListener('scroll', onScroll)
+    return function () {
+      window.removeEventListener('scroll', onScroll)
+    }
+  }, [speed])
+  return offset
+}
+
+function FadeZoomCard({ children, delay = 0 }) {
+  const ref = useRef(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(function () {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            setVisible(true)
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.15 }
+    )
+    observer.observe(el)
+    return function () {
+      observer.disconnect()
+    }
+  }, [])
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'scale(1)' : 'scale(0.92)',
+        transition: `opacity .6s ease ${delay}ms, transform .6s ease ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  )
+}
 
 const navStyle = { fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', textDecoration: 'none', padding: '8px 16px', borderRadius: 30, background: 'rgba(255,255,255,.6)' }
 const footLink = { color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 600 }
@@ -27,12 +79,15 @@ const PACKAGES = [
 function loadCart() { try { return JSON.parse(localStorage.getItem('chew_cart') || '{}') } catch { return {} } }
 function saveCart(c) { try { localStorage.setItem('chew_cart', JSON.stringify(c)) } catch {} }
 function isLogged() { try { return localStorage.getItem('chew_logged_in') === '1' } catch { return false } }
+function doLogout() { try { localStorage.removeItem('chew_logged_in') } catch {} }
 
 function TosaBanho() {
   const navigate = useNavigate()
   const [cart, setCart] = useState(loadCart())
   const [cartOpen, setCartOpen] = useState(false)
   const [svcMenu, setSvcMenu] = useState(false)
+  const [logged, setLogged] = useState(isLogged())
+  const parallaxOffset = useParallax(0.35)
 
   function add(p) {
     if (!isLogged()) { navigate('/login'); return }
@@ -44,6 +99,7 @@ function TosaBanho() {
   }
   function inc(id) { const c = loadCart(); if (c[id]) { c[id].qty++; saveCart(c); setCart({ ...c }) } }
   function dec(id) { const c = loadCart(); if (c[id]) { c[id].qty--; if (c[id].qty <= 0) delete c[id]; saveCart(c); setCart({ ...c }) } }
+  function handleLogout() { doLogout(); setLogged(false) }
 
   const ids = Object.keys(cart)
   const count = ids.reduce((a, id) => a + cart[id].qty, 0)
@@ -51,13 +107,25 @@ function TosaBanho() {
 
   return (
     <div style={{ background: '#F4FAFB', minHeight: '100vh', display: 'flex', justifyContent: 'center', fontFamily: "'Nunito', sans-serif" }}>
+      <style>{`
+        .chew-tosa-header-nav { flex-wrap: wrap; justify-content: flex-end; }
+        .chew-tosa-hero { flex-wrap: wrap; }
+        .chew-tosa-hero > div:first-child { min-width: 280px; }
+        .chew-tosa-features { grid-template-columns: repeat(4, 1fr); }
+        .chew-tosa-steps { flex-wrap: wrap; }
+        .chew-tosa-steps > div { min-width: 180px; }
+        .chew-tosa-packages { flex-wrap: wrap; }
+        .chew-tosa-packages > div { min-width: 260px; }
+        @media (max-width: 980px) {
+          .chew-tosa-features { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+      `}</style>
       <div style={{ width: '100%', maxWidth: 1180, background: '#F4FAFB', position: 'relative' }}>
 
         {/* CABEÇALHO */}
-        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', background: '#CDE8F2', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(120,180,210,.28)' }}>
+        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', background: '#CDE8F2', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(120,180,210,.28)', flexWrap: 'wrap', gap: 12 }}>
           <Link to="/" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 34, textDecoration: 'none', letterSpacing: '.5px', color: '#16313b' }}>CHEW!!</Link>
-          <nav style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {/* menu suspenso Serviços */}
+          <nav className="chew-tosa-header-nav" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ position: 'relative' }} onMouseEnter={() => setSvcMenu(true)} onMouseLeave={() => setSvcMenu(false)}>
               <Link to="/servicos" style={navStyle}>Serviços</Link>
               {svcMenu && (
@@ -71,7 +139,11 @@ function TosaBanho() {
             </div>
             <Link to="/adocao" style={navStyle}>Adoção</Link>
             <Link to="/Produtos" style={navStyle}>Produtos</Link>
-            <Link to="/login" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', textDecoration: 'none', border: '2px solid #16313b', borderRadius: 30, padding: '7px 20px' }}>Entre</Link>
+            {logged ? (
+              <button onClick={handleLogout} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', background: 'transparent', border: '2px solid #16313b', borderRadius: 30, padding: '7px 20px', cursor: 'pointer' }}>Sair</button>
+            ) : (
+              <Link to="/login" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', textDecoration: 'none', border: '2px solid #16313b', borderRadius: 30, padding: '7px 20px' }}>Entre</Link>
+            )}
             <button onClick={() => setCartOpen(true)} style={{ position: 'relative', width: 46, height: 46, borderRadius: '50%', border: 'none', background: '#16313b', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="20" r="1.4" /><circle cx="18" cy="20" r="1.4" /><path d="M2 3h3l2.4 12.4a1.5 1.5 0 0 0 1.5 1.2h8.2a1.5 1.5 0 0 0 1.5-1.2L21.5 7H6" /></svg>
               {count > 0 && <span style={{ position: 'absolute', top: -4, right: -4, minWidth: 20, height: 20, padding: '0 5px', borderRadius: 20, background: '#E8530E', color: '#fff', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #CDE8F2' }}>{count}</span>}
@@ -79,9 +151,9 @@ function TosaBanho() {
           </nav>
         </header>
 
-        
+
         <Reveal>
-          <section style={{ position: 'relative', margin: '8px 24px 0', borderRadius: 34, overflow: 'hidden', background: 'linear-gradient(120deg,#A7D8EC 0%,#C9E5F2 45%,#F4C7D9 100%)', padding: '54px 56px', display: 'flex', alignItems: 'center', gap: 40 }}>
+          <section className="chew-tosa-hero" style={{ position: 'relative', margin: '8px 24px 0', borderRadius: 34, overflow: 'hidden', background: 'linear-gradient(120deg,#A7D8EC 0%,#C9E5F2 45%,#F4C7D9 100%)', padding: '54px 56px', display: 'flex', alignItems: 'center', gap: 40 }}>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#fff', color: '#1B6FB0', fontWeight: 800, fontSize: 13, letterSpacing: '1px', padding: '7px 16px', borderRadius: 30, marginBottom: 18 }}>
                 <svg width="15" height="15" viewBox="0 0 24 24"><path d="M12 2c3 4 5 6 5 9a5 5 0 0 1-10 0c0-3 2-5 5-9z" fill="#7FB9E6" /></svg>BANHO & TOSA
@@ -93,10 +165,8 @@ function TosaBanho() {
                 <a href="#pacotes" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#1B6FB0', background: '#fff', textDecoration: 'none', borderRadius: 14, padding: '14px 32px' }}>Ver pacotes</a>
               </div>
             </div>
-            <div style={{ flex: '0 0 320px', height: 300, borderRadius: 26, overflow: 'hidden', border: '6px solid #fff', boxShadow: '0 18px 40px rgba(0,0,0,.16)' }}>
-            
-              <img src="/imagens/tosaebanho.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              
+            <div style={{ flex: '0 0 320px', height: 300, borderRadius: 26, overflow: 'hidden', border: '6px solid #fff', boxShadow: '0 18px 40px rgba(0,0,0,.16)', transform: `translateY(${-parallaxOffset}px)` }}>
+              <img src="/imagens/banhoprinci.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             </div>
           </section>
         </Reveal>
@@ -108,15 +178,17 @@ function TosaBanho() {
               <h2 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 700, fontSize: 34, color: '#16313b', margin: '0 0 8px' }}>O que está incluso</h2>
               <p style={{ fontSize: 16, color: '#7a8a8d', margin: 0 }}>Cada detalhe pensado para o bem-estar do seu pet.</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+            <div className="chew-tosa-features" style={{ display: 'grid', gap: 20 }}>
               {FEATURES.map((f, i) => (
-                <div key={i} style={{ background: '#fff', borderRadius: 22, padding: '26px 22px', boxShadow: '0 8px 22px rgba(0,0,0,.05)', textAlign: 'center' }}>
-                  <span style={{ width: 60, height: 60, borderRadius: 18, background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={f.fg} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={f.p} /></svg>
-                  </span>
-                  <h4 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#16313b', margin: '0 0 6px' }}>{f.title}</h4>
-                  <p style={{ fontSize: 13.5, lineHeight: 1.5, color: '#7a8a8d', margin: 0 }}>{f.desc}</p>
-                </div>
+                <FadeZoomCard key={i} delay={i * 90}>
+                  <div style={{ background: '#fff', borderRadius: 22, padding: '26px 22px', boxShadow: '0 8px 22px rgba(0,0,0,.05)', textAlign: 'center' }}>
+                    <span style={{ width: 60, height: 60, borderRadius: 18, background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={f.fg} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={f.p} /></svg>
+                    </span>
+                    <h4 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#16313b', margin: '0 0 6px' }}>{f.title}</h4>
+                    <p style={{ fontSize: 13.5, lineHeight: 1.5, color: '#7a8a8d', margin: 0 }}>{f.desc}</p>
+                  </div>
+                </FadeZoomCard>
               ))}
             </div>
           </section>
@@ -126,13 +198,15 @@ function TosaBanho() {
         <Reveal>
           <section style={{ margin: '40px 24px', background: '#fff', borderRadius: 30, padding: '44px 48px' }}>
             <h2 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 700, fontSize: 30, color: '#16313b', margin: '0 0 30px', textAlign: 'center' }}>O passo a passo do spa</h2>
-            <div style={{ display: 'flex', gap: 18 }}>
+            <div className="chew-tosa-steps" style={{ display: 'flex', gap: 18 }}>
               {STEPS.map((st, i) => (
-                <div key={i} style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ width: 64, height: 64, borderRadius: '50%', background: st.bg, color: st.fg, fontFamily: "'Baloo 2', cursive", fontWeight: 800, fontSize: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>{st.n}</div>
-                  <h4 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#16313b', margin: '0 0 6px' }}>{st.title}</h4>
-                  <p style={{ fontSize: 13.5, color: '#7a8a8d', maxWidth: 220, margin: '0 auto' }}>{st.desc}</p>
-                </div>
+                <FadeZoomCard key={i} delay={i * 100}>
+                  <div style={{ flex: 1, textAlign: 'center' }}>
+                    <div style={{ width: 64, height: 64, borderRadius: '50%', background: st.bg, color: st.fg, fontFamily: "'Baloo 2', cursive", fontWeight: 800, fontSize: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>{st.n}</div>
+                    <h4 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#16313b', margin: '0 0 6px' }}>{st.title}</h4>
+                    <p style={{ fontSize: 13.5, color: '#7a8a8d', maxWidth: 220, margin: '0 auto' }}>{st.desc}</p>
+                  </div>
+                </FadeZoomCard>
               ))}
             </div>
           </section>
@@ -145,24 +219,26 @@ function TosaBanho() {
               <h2 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 700, fontSize: 34, color: '#16313b', margin: '0 0 8px' }}>Nossos pacotes</h2>
               <p style={{ fontSize: 16, color: '#7a8a8d', margin: 0 }}>Escolha o mimo ideal e adicione ao carrinho.</p>
             </div>
-            <div style={{ display: 'flex', gap: 24, alignItems: 'stretch' }}>
-              {PACKAGES.map((p) => (
-                <div key={p.id} style={{ position: 'relative', flex: 1, borderRadius: 26, padding: '30px 28px', display: 'flex', flexDirection: 'column', boxShadow: p.highlight ? '0 22px 44px rgba(196,107,142,.22)' : '0 10px 26px rgba(0,0,0,.07)', background: p.cardBg, border: p.highlight ? '2px solid #F4C7D9' : '2px solid transparent', transform: p.highlight ? 'translateY(-10px)' : 'none' }}>
-                  {p.popular && <span style={{ position: 'absolute', top: 16, right: 16, background: '#E8530E', color: '#fff', fontWeight: 800, fontSize: 10, letterSpacing: '.5px', padding: '5px 11px', borderRadius: 30 }}>MAIS PEDIDO</span>}
-                  <h3 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 700, fontSize: 24, color: '#16313b', margin: '0 0 6px' }}>{p.name}</h3>
-                  <p style={{ fontSize: 13.5, color: p.subColor, margin: '0 0 16px' }}>{p.sub}</p>
-                  <div style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 800, fontSize: 38, color: '#E8530E', marginBottom: 16 }}>{money(p.price)}</div>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 22px', display: 'flex', flexDirection: 'column', gap: 9, flex: 1 }}>
-                    {p.items.map((it, j) => (
-                      <li key={j} style={{ display: 'flex', alignItems: 'center', gap: 9, fontWeight: 600, fontSize: 14, color: '#3a3a3a' }}>
-                        <span style={{ width: 18, height: 18, borderRadius: '50%', background: p.dotBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={p.dotStroke} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5L20 6" /></svg>
-                        </span>{it}
-                      </li>
-                    ))}
-                  </ul>
-                  <button onClick={() => add(p)} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 15, color: '#fff', background: p.highlight ? '#E8530E' : '#16313b', border: 'none', cursor: 'pointer', borderRadius: 12, padding: 13, width: '100%' }}>Adicionar ao carrinho</button>
-                </div>
+            <div className="chew-tosa-packages" style={{ display: 'flex', gap: 24, alignItems: 'stretch' }}>
+              {PACKAGES.map((p, i) => (
+                <FadeZoomCard key={p.id} delay={i * 120}>
+                  <div style={{ position: 'relative', flex: 1, borderRadius: 26, padding: '30px 28px', display: 'flex', flexDirection: 'column', boxShadow: p.highlight ? '0 22px 44px rgba(196,107,142,.22)' : '0 10px 26px rgba(0,0,0,.07)', background: p.cardBg, border: p.highlight ? '2px solid #F4C7D9' : '2px solid transparent', transform: p.highlight ? 'translateY(-10px)' : 'none' }}>
+                    {p.popular && <span style={{ position: 'absolute', top: 16, right: 16, background: '#E8530E', color: '#fff', fontWeight: 800, fontSize: 10, letterSpacing: '.5px', padding: '5px 11px', borderRadius: 30 }}>MAIS PEDIDO</span>}
+                    <h3 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 700, fontSize: 24, color: '#16313b', margin: '0 0 6px' }}>{p.name}</h3>
+                    <p style={{ fontSize: 13.5, color: p.subColor, margin: '0 0 16px' }}>{p.sub}</p>
+                    <div style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 800, fontSize: 38, color: '#E8530E', marginBottom: 16 }}>{money(p.price)}</div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 22px', display: 'flex', flexDirection: 'column', gap: 9, flex: 1 }}>
+                      {p.items.map((it, j) => (
+                        <li key={j} style={{ display: 'flex', alignItems: 'center', gap: 9, fontWeight: 600, fontSize: 14, color: '#3a3a3a' }}>
+                          <span style={{ width: 18, height: 18, borderRadius: '50%', background: p.dotBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={p.dotStroke} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5L20 6" /></svg>
+                          </span>{it}
+                        </li>
+                      ))}
+                    </ul>
+                    <button onClick={() => add(p)} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 15, color: '#fff', background: p.highlight ? '#E8530E' : '#16313b', border: 'none', cursor: 'pointer', borderRadius: 12, padding: 13, width: '100%' }}>Adicionar ao carrinho</button>
+                  </div>
+                </FadeZoomCard>
               ))}
             </div>
           </section>
@@ -171,7 +247,7 @@ function TosaBanho() {
         {/* RODAPÉ */}
         <footer style={{ background: '#123542', padding: '40px 44px' }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <nav style={{ display: 'flex', gap: 30 }}>
+            <nav style={{ display: 'flex', gap: 30, flexWrap: 'wrap' }}>
               <Link to="/sobre" style={footLink}>Sobre</Link>
               <Link to="/servicos" style={footLink}>Serviços</Link>
               <Link to="/adocao" style={footLink}>Adoção</Link>
@@ -180,7 +256,7 @@ function TosaBanho() {
           </div>
         </footer>
 
-        
+
         {cartOpen && (
           <>
             <div onClick={() => setCartOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(22,49,59,.45)', zIndex: 40 }}></div>

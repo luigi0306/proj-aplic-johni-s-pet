@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Reveal from '../components/Reveal.jsx'
+import StaffOwlIcon from '../components/StaffOwlIcon.jsx'
 const navy = '#16313b', yellow = '#F6B500'
 const footLink = { color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 600 }
 
@@ -11,7 +12,7 @@ const CREATE_PHOTOS = ['pethome.jpg', 'pethome1.jpg', 'pethome2.jpg']
 const SERVICES = [
   { icon: 'cross', title: 'Veterinária', to: '/veterinaria', body: 'No Chew!, acreditamos que o cuidado veterinário vai muito além do atendimento — começa no olhar atento, na escuta cuidadosa e no compromisso genuíno com o bem-estar de cada pet.' },
   { icon: 'scissors', title: 'Tosagens específicas para cada raça', to: '/tosa-banho', body: 'No Chew!, o banho e a tosa são feitos com carinho, cuidado e atenção a cada detalhe para o conforto do seu pet. Mais higiene, beleza e bem-estar num momento pensado para ele.' },
-  { icon: 'tag', title: 'Produtos', to: '/Produtos', body: 'Produtos selecionados a dedo para o cuidado completo, bem-estar e carinho do seu pet. Tudo o que ele precisa para uma vida mais saudável, com qualidade e amor em cada detalhe.' },
+  { icon: 'tag', title: 'Produtos', to: '/produtos', body: 'Produtos selecionados a dedo para o cuidado completo, bem-estar e carinho do seu pet. Tudo o que ele precisa para uma vida mais saudável, com qualidade e amor em cada detalhe.' },
 ]
 const TESTIMONIALS = [
   { img: 'clientes.jpg', text: 'Desde que conheci a Chew!, o cuidado com o meu pet mudou completamente. Atendimento atencioso, Produtos de confiança e uma equipe que realmente ama o que faz.' },
@@ -67,7 +68,7 @@ function Home() {
     <div style={{ background: '#ECEAE4', minHeight: '100vh', display: 'flex', justifyContent: 'center', padding: '22px 0 0', fontFamily: "'Nunito', sans-serif" }}>
       <div style={{ width: '100%', maxWidth: 1180, background: '#ECEAE4', overflow: 'hidden' }}>
 
-        
+
         <section style={{ position: 'relative', borderRadius: '6px 6px 0 0', overflow: 'hidden' }}>
           <img src="/imagens/fundo1.png" alt="" style={{ width: '100%', height: 620, objectFit: 'cover', display: 'block' }} />
 
@@ -86,11 +87,18 @@ function Home() {
                 )}
               </div>
               <Link to="/adocao" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#fff', textDecoration: 'none', padding: '8px 16px', borderRadius: 30, background: 'rgba(232,83,14,.85)', textShadow: '0 1px 3px rgba(0,0,0,.35)' }}>Adoção</Link>
-              <Link to="/Produtos" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#16313b', textDecoration: 'none', padding: '8px 16px', borderRadius: 30, background: 'rgba(246,181,0,.92)', textShadow: '0 1px 2px rgba(255,255,255,.35)' }}>Produtos</Link>
+              <Link to="/produtos" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#16313b', textDecoration: 'none', padding: '8px 16px', borderRadius: 30, background: 'rgba(246,181,0,.92)', textShadow: '0 1px 2px rgba(255,255,255,.35)' }}>Produtos</Link>
               {!logged && <Link to="/login?mode=signup" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#fff', textDecoration: 'none', padding: '8px 16px', borderRadius: 30, background: 'rgba(27,136,141,.9)', textShadow: '0 1px 3px rgba(0,0,0,.3)' }}>Cadastro</Link>}
               {logged
                 ? <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.4)', borderRadius: 30, padding: '5px 5px 5px 16px' }}><span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 15, color: '#16313b' }}>Olá, {getUser()}</span><a onClick={logout} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 13, color: '#fff', background: '#16313b', borderRadius: 30, padding: '7px 15px', textDecoration: 'none', cursor: 'pointer' }}>Sair</a></div>
                 : <Link to="/login" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', textDecoration: 'none', border: '2px solid #16313b', borderRadius: 30, padding: '9px 24px', background: 'rgba(255,255,255,.25)' }}>Entre</Link>}
+              <Link
+                to="/funcionario/login"
+                title="Área da equipe"
+                style={{ width: 52, height: 52, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,.25)' }}
+              >
+                <StaffOwlIcon size={52} />
+              </Link>
             </nav>
           </header>
 
@@ -110,7 +118,7 @@ function Home() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div ref={catRef} style={{ display: 'flex', alignItems: 'center', gap: 16, overflowX: 'auto', cursor: 'grab', padding: '24px 8px', scrollbarWidth: 'none' }}>
                 {circles.map((img, i) => (
-                  <Link key={i} to="/Produtos" style={{ flex: '0 0 auto', width: 84, height: 84, borderRadius: '50%', overflow: 'hidden', border: '3px solid #fff', cursor: 'pointer', transition: 'transform .28s cubic-bezier(.2,.8,.3,1.4), box-shadow .28s', display: 'block' }}
+                  <Link key={i} to="/produtos" style={{ flex: '0 0 auto', width: 84, height: 84, borderRadius: '50%', overflow: 'hidden', border: '3px solid #fff', cursor: 'pointer', transition: 'transform .28s cubic-bezier(.2,.8,.3,1.4), box-shadow .28s', display: 'block' }}
                     onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.5)'; e.currentTarget.style.boxShadow = '0 12px 26px rgba(0,0,0,.35)'; e.currentTarget.style.zIndex = '5'; e.currentTarget.style.position = 'relative' }}
                     onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none' }}>
                     <img src={`/imagens/${img}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }} />
@@ -176,7 +184,7 @@ function Home() {
                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 9 }}>
                   {['Adoção', 'Ração Premium', 'Serviços'].map((t) => <li key={t} style={{ display: 'flex', alignItems: 'center', gap: 11, fontWeight: 600, fontSize: 15 }}><span style={{ width: 11, height: 11, borderRadius: '50%', border: '3px solid #123542', display: 'inline-block' }}></span>{t}</li>)}
                 </ul>
-                <Link to="/Produtos" style={{ display: 'inline-block', fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#fff', background: '#123542', textDecoration: 'none', borderRadius: 11, padding: '12px 30px' }}>Explore</Link>
+                <Link to="/produtos" style={{ display: 'inline-block', fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#fff', background: '#123542', textDecoration: 'none', borderRadius: 11, padding: '12px 30px' }}>Explore</Link>
               </div>
             </div>
           </section>
@@ -210,7 +218,7 @@ function Home() {
           </section>
         </Reveal>
 
-        
+
         <Reveal>
           <section style={{ display: 'flex', minHeight: 200 }}>
             <div style={{ position: 'relative', flex: '0 0 42%', background: '#F6B500', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
@@ -229,12 +237,16 @@ function Home() {
 
         {/* RODAPÉ */}
         <footer style={{ position: 'relative', background: '#123542', padding: '40px 44px' }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Link to="/funcionario/login" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#7a8a8d', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+              <StaffOwlIcon size={32} />
+              Área da equipe
+            </Link>
             <nav style={{ display: 'flex', gap: 30 }}>
               <Link to="/sobre" style={footLink}>Sobre</Link>
               <Link to="/servicos" style={footLink}>Serviços</Link>
               <Link to="/adocao" style={footLink}>Adoção</Link>
-              <Link to="/Produtos" style={footLink}>Produtos</Link>
+              <Link to="/produtos" style={footLink}>Produtos</Link>
             </nav>
           </div>
         </footer>
