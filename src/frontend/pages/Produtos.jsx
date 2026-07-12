@@ -12,7 +12,6 @@ function useParallax(speed) {
   return offset
 }
 
-// card que aparece com fade + zoom quando entra na tela durante o scroll
 function FadeZoomCard({ children, delay = 0 }) {
   const ref = useRef(null)
   const [visible, setVisible] = useState(false)
@@ -49,6 +48,15 @@ function FadeZoomCard({ children, delay = 0 }) {
   )
 }
 
+const API_BASE = 'http://localhost:3000/api'
+
+function normalizarTexto(txt) {
+  return txt
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+}
+
 const navStyle = { fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', textDecoration: 'none', padding: '8px 16px', borderRadius: 30, background: 'rgba(255,255,255,.55)' }
 const footLink = { color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 600 }
 const money = (n) => 'R$ ' + n.toFixed(2).replace('.', ',')
@@ -69,7 +77,6 @@ const SEC = {
 const SEC_ORDER = ['food', 'bath', 'toy', 'acc', 'roupa']
 
 const CATALOG = [
-  // ===== cachorrinho =====
   { id: 'd1', cat: 'dog', sec: 'food', kind: 'Ração', name: 'Ração Pedigree Adulto 10kg', price: 89.9, img: '/imagens/ração.jpg' },
   { id: 'd2', cat: 'dog', sec: 'food', kind: 'Ração', name: 'Ração Golden Fórmula Cães', price: 129.9, img: '/imagens/rac2.jpg' },
   { id: 'd3', cat: 'dog', sec: 'food', kind: 'Ração', name: 'Ração Premier Raças Pequenas', price: 114.9, img: '/imagens/rac4.jpg' },
@@ -104,8 +111,6 @@ const CATALOG = [
   { id: 'd24', cat: 'dog', sec: 'roupa', kind: 'Roupinha', name: 'Capa de Chuva Impermeável', price: 49.9, img: '/imagens/roupadog3.jpg' },
   { id: 'd25', cat: 'dog', sec: 'roupa', kind: 'Roupinha', name: 'Vestido Pet com Laço', price: 42.9, img: '/imagens/roupadog4.jpg' },
   { id: 'd26', cat: 'dog', sec: 'roupa', kind: 'Roupinha', name: 'Suéter Listrado Quentinho', price: 38.9, img: '/imagens/roupadog5.jpg' },
-
-  // ===== gatinho =====
   { id: 'c1', cat: 'cat', sec: 'food', kind: 'Ração', name: 'Ração Whiskas Sabor Peixe', price: 74.9, img: '/imagens/racgat1.jpg' },
   { id: 'c2', cat: 'cat', sec: 'food', kind: 'Ração', name: 'Ração Golden Special Gatos', price: 69.9, img: '/imagens/racgato2.jpg' },
   { id: 'c3', cat: 'cat', sec: 'food', kind: 'Ração', name: 'Ração Premier Gatos Castrados', price: 99.9, img: '/imagens/racgato3.jpg' },
@@ -142,8 +147,6 @@ const CATALOG = [
   { id: 'c34', cat: 'cat', sec: 'roupa', kind: 'Roupinha', name: 'Suéter Gatinho', price: 29.9, img: '/imagens/roupagat3.jpg' },
   { id: 'c35', cat: 'cat', sec: 'roupa', kind: 'Roupinha', name: 'Capa de Chuva Felina', price: 36.9, img: '/imagens/roupagat4.jpg' },
   { id: 'c36', cat: 'cat', sec: 'roupa', kind: 'Roupinha', name: 'Roupinha de Frio Gato', price: 33.9, img: '/imagens/roupagat5.jpg' },
-
-  // ===== pássaros =====
   { id: 'b1', cat: 'bird', sec: 'food', kind: 'Sementes', name: 'Mix de Sementes Premium', price: 18.9, img: '/imagens/racpass1.jpg' },
   { id: 'b2', cat: 'bird', sec: 'food', kind: 'Ração', name: 'Ração Farinhada Trinca-Ferro', price: 24.9, img: '/imagens/racpass2.jpg' },
   { id: 'b3', cat: 'bird', sec: 'food', kind: 'Alimento', name: 'Papa de Ovos', price: 21.9, img: '' },
@@ -157,8 +160,6 @@ const CATALOG = [
   { id: 'b11', cat: 'bird', sec: 'acc', kind: 'Acessório', name: 'Casinha de Madeira para Pássaros', price: 64.9, img: '/imagens/casinhapas3.jpg' },
   { id: 'b12', cat: 'bird', sec: 'acc', kind: 'Acessório', name: 'Ninho Redondo de Palha', price: 24.9, img: '/imagens/casinhapas4.jpg' },
   { id: 'b13', cat: 'bird', sec: 'acc', kind: 'Acessório', name: 'Casa Aviário Decorativa', price: 149.9, img: '/imagens/casinhapas5.jpg' },
-
-  // ===== hamster =====
   { id: 'h1', cat: 'hamster', sec: 'food', kind: 'Ração', name: 'Ração Hamster Completa', price: 19.9, img: '/imagens/rachams.jpg' },
   { id: 'h2', cat: 'hamster', sec: 'food', kind: 'Sementes', name: 'Mix de Grãos e Sementes', price: 16.9, img: '/imagens/rachams2.jpg' },
   { id: 'h3', cat: 'hamster', sec: 'food', kind: 'Alimento', name: 'Blocos de Feno', price: 12.9, img: '/imagens/rachams3.jpg' },
@@ -195,11 +196,51 @@ function Produtos() {
   const [logged, setLogged] = useState(isLogged())
   const parallaxOffset = useParallax(0.35)
 
+  const [busca, setBusca] = useState('')
+  const [resultadosBackend, setResultadosBackend] = useState(null)
+  const [buscandoBackend, setBuscandoBackend] = useState(false)
+
+  useEffect(function () {
+    const termo = busca.trim()
+
+    if (!termo) {
+      setResultadosBackend(null)
+      return
+    }
+
+    let cancelado = false
+    setBuscandoBackend(true)
+
+    const timer = setTimeout(function () {
+      fetch(API_BASE + '/produtos/busca?termo=' + encodeURIComponent(termo))
+        .then(function (res) {
+          if (!res.ok) throw new Error('endpoint indisponível')
+          return res.json()
+        })
+        .then(function (data) {
+          if (!cancelado && Array.isArray(data)) {
+            setResultadosBackend(data)
+          }
+        })
+        .catch(function () {
+          if (!cancelado) setResultadosBackend(null)
+        })
+        .finally(function () {
+          if (!cancelado) setBuscandoBackend(false)
+        })
+    }, 350)
+
+    return function () {
+      cancelado = true
+      clearTimeout(timer)
+    }
+  }, [busca])
+
   function add(p) {
     if (!isLogged()) { navigate('/login'); return }
     const id = 'prod:' + p.id
     const c = loadCart()
-    const e = c[id] || { name: p.name, price: p.price, img: p.img, color: CATS[p.cat].color, qty: 0 }
+    const e = c[id] || { name: p.name, price: p.price, img: p.img, color: (CATS[p.cat] && CATS[p.cat].color) || '#E8530E', qty: 0 }
     e.qty++; c[id] = e
     saveCart(c); setCart({ ...c }); setCartOpen(true)
   }
@@ -210,9 +251,47 @@ function Produtos() {
   const ids = Object.keys(cart)
   const count = ids.reduce((a, id) => a + cart[id].qty, 0)
   const total = ids.reduce((a, id) => a + cart[id].qty * cart[id].price, 0)
+
+  const termoBusca = busca.trim()
+  const buscando = termoBusca.length > 0
+
+  const resultadosBusca = buscando
+    ? (resultadosBackend !== null
+        ? resultadosBackend
+        : CATALOG.filter(function (p) {
+            const alvo = normalizarTexto(p.name + ' ' + p.kind)
+            return alvo.includes(normalizarTexto(termoBusca))
+          }))
+    : []
+
   const sections = SEC_ORDER
     .map((s) => ({ key: s, ...SEC[s], items: CATALOG.filter((p) => p.cat === cat && p.sec === s) }))
     .filter((s) => s.items.length > 0)
+
+  function ProdutoCard({ p, delay }) {
+    return (
+      <FadeZoomCard delay={delay}>
+        <div style={{ background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 10px 26px rgba(0,0,0,.07)', display: 'flex', flexDirection: 'column', transition: 'transform .3s, box-shadow .3s' }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.boxShadow = '0 22px 40px rgba(0,0,0,.16)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 10px 26px rgba(0,0,0,.07)' }}>
+          <div style={{ position: 'relative', height: 200, background: '#F4F1EA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
+            <span style={{ position: 'absolute', top: 10, left: 10, background: (CATS[p.cat] && CATS[p.cat].color) || '#16313b', color: '#fff', fontWeight: 800, fontSize: 10, letterSpacing: '.5px', padding: '4px 10px', borderRadius: 30 }}>{(CATS[p.cat] && CATS[p.cat].label) || ''}</span>
+            {p.img
+              ? <img src={p.img} alt={p.name} loading="lazy" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }} />
+              : <span style={{ fontSize: 13, color: '#bbb' }}>foto em breve</span>}
+          </div>
+          <div style={{ padding: '14px 16px 18px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#aa9f88', textTransform: 'uppercase', letterSpacing: '.5px' }}>{p.kind}</span>
+            <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#16313b', margin: '2px 0 10px', lineHeight: 1.2 }}>{p.name}</span>
+            <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              <span style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 700, fontSize: 20, color: '#E8530E' }}>{money(p.price)}</span>
+              <button onClick={() => add(p)} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 13, color: '#fff', background: '#16313b', border: 'none', cursor: 'pointer', borderRadius: 10, padding: '9px 14px' }}>+ Add</button>
+            </div>
+          </div>
+        </div>
+      </FadeZoomCard>
+    )
+  }
 
   return (
     <div style={{ background: '#F7F4EE', minHeight: '100vh', display: 'flex', fontFamily: "'Nunito', sans-serif" }}>
@@ -254,7 +333,18 @@ function Produtos() {
               <div style={{ display: 'inline-block', background: '#fff', color: '#C58A12', fontWeight: 800, fontSize: 13, letterSpacing: '1px', padding: '7px 16px', borderRadius: 30, marginBottom: 16 }}>CHEW! STORE</div>
               <h1 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 800, fontSize: 54, lineHeight: 1, color: '#16313b', margin: '0 0 12px' }}>Tudo para o seu pet</h1>
               <p style={{ fontSize: 17, lineHeight: 1.55, color: '#5a4d2d', maxWidth: 440, margin: '0 0 24px' }}>Ração, petiscos, brinquedos e acessórios para cães, gatos, pássaros e hamsters. Qualidade que seu melhor amigo merece.</p>
-              <a href="#catalogo" style={{ display: 'inline-block', fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#fff', background: '#E8530E', textDecoration: 'none', borderRadius: 14, padding: '14px 32px' }}>Ver catálogo</a>
+              
+              <a
+                href="#catalogo"
+                onClick={function (e) {
+                  e.preventDefault()
+                  const alvo = document.getElementById('catalogo')
+                  if (alvo) alvo.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+                style={{ display: 'inline-block', fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#fff', background: '#E8530E', textDecoration: 'none', borderRadius: 14, padding: '14px 32px', cursor: 'pointer' }}
+              >
+                Ver catálogo
+              </a>
             </div>
             <div style={{ flex: '0 0 300px', height: 250, borderRadius: 26, overflow: 'hidden', border: '6px solid #fff', boxShadow: '0 18px 40px rgba(0,0,0,.18)', transform: `translateY(${-parallaxOffset}px)` }}>
               <img src="/imagens/produprin.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -266,51 +356,78 @@ function Produtos() {
           <section id="catalogo" style={{ padding: '44px 40px 20px' }}>
             <div style={{ textAlign: 'center', marginBottom: 26 }}>
               <h2 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 700, fontSize: 36, color: '#16313b', margin: '0 0 8px' }}>Nosso catálogo</h2>
-              <p style={{ fontSize: 16, color: '#8a7d62', margin: 0 }}>Escolha o tipo de bichinho e monte seu carrinho.</p>
+              <p style={{ fontSize: 16, color: '#8a7d62', margin: 0 }}>Escolha o tipo de bichinho, ou busque direto pelo nome do produto.</p>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 34 }}>
-              {Object.keys(CATS).map((k) => {
-                const on = k === cat
-                return (
-                  <button key={k} onClick={() => setCat(k)} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 15, cursor: 'pointer', borderRadius: 30, padding: '10px 22px', border: `2px solid ${on ? CATS[k].color : '#e2dccd'}`, background: on ? CATS[k].color : '#fff', color: on ? '#fff' : '#16313b' }}>{CATS[k].label}</button>
-                )
-              })}
-            </div>
-
-            {sections.map((sec) => (
-              <div key={sec.key} style={{ marginBottom: 40 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-                  <span style={{ width: 44, height: 44, borderRadius: 14, background: sec.bg, flexShrink: 0 }}></span>
-                  <h3 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 700, fontSize: 26, color: '#16313b', margin: 0 }}>{sec.label}</h3>
-                  <span style={{ flex: 1, height: 2, background: '#e7e2d4', borderRadius: 2 }}></span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 22 }}>
-                  {sec.items.map((p, i) => (
-                    <FadeZoomCard key={p.id} delay={(i % 4) * 80}>
-                      <div style={{ background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 10px 26px rgba(0,0,0,.07)', display: 'flex', flexDirection: 'column', transition: 'transform .3s, box-shadow .3s' }}
-                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.boxShadow = '0 22px 40px rgba(0,0,0,.16)' }}
-                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 10px 26px rgba(0,0,0,.07)' }}>
-                        <div style={{ position: 'relative', height: 200, background: '#F4F1EA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
-                          <span style={{ position: 'absolute', top: 10, left: 10, background: CATS[p.cat].color, color: '#fff', fontWeight: 800, fontSize: 10, letterSpacing: '.5px', padding: '4px 10px', borderRadius: 30 }}>{CATS[p.cat].label}</span>
-                          {p.img
-    ? <img src={p.img} alt={p.name} loading="lazy" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }} />
-    : <span style={{ fontSize: 13, color: '#bbb' }}>foto em breve</span>}
-                        </div>
-                        <div style={{ padding: '14px 16px 18px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: '#aa9f88', textTransform: 'uppercase', letterSpacing: '.5px' }}>{p.kind}</span>
-                          <span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#16313b', margin: '2px 0 10px', lineHeight: 1.2 }}>{p.name}</span>
-                          <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                            <span style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 700, fontSize: 20, color: '#E8530E' }}>{money(p.price)}</span>
-                            <button onClick={() => add(p)} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 13, color: '#fff', background: '#16313b', border: 'none', cursor: 'pointer', borderRadius: 10, padding: '9px 14px' }}>+ Add</button>
-                          </div>
-                        </div>
-                      </div>
-                    </FadeZoomCard>
-                  ))}
-                </div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 22 }}>
+              <div style={{ position: 'relative', width: '100%', maxWidth: 440 }}>
+                <input
+                  type="text"
+                  value={busca}
+                  onChange={function (e) { setBusca(e.target.value) }}
+                  placeholder="Buscar produto (ex: ração, coleira, shampoo...)"
+                  style={{
+                    width: '100%',
+                    height: 50,
+                    borderRadius: 30,
+                    border: '2px solid #e2dccd',
+                    padding: '0 46px 0 20px',
+                    fontSize: 15,
+                    fontFamily: "'Nunito', sans-serif",
+                    boxSizing: 'border-box',
+                    outline: 'none',
+                    background: '#fff',
+                  }}
+                />
+                <span style={{ position: 'absolute', right: 18, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aa9f88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                </span>
               </div>
-            ))}
+            </div>
+
+            {!buscando && (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 34 }}>
+                {Object.keys(CATS).map((k) => {
+                  const on = k === cat
+                  return (
+                    <button key={k} onClick={() => setCat(k)} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 15, cursor: 'pointer', borderRadius: 30, padding: '10px 22px', border: `2px solid ${on ? CATS[k].color : '#e2dccd'}`, background: on ? CATS[k].color : '#fff', color: on ? '#fff' : '#16313b' }}>{CATS[k].label}</button>
+                  )
+                })}
+              </div>
+            )}
+
+            {buscando ? (
+              <div style={{ marginBottom: 40 }}>
+                <p style={{ textAlign: 'center', fontSize: 14, color: '#8a7d62', marginBottom: 20 }}>
+                  {resultadosBusca.length} resultado(s) para "{termoBusca}"
+                  {buscandoBackend ? ' — buscando no servidor...' : ''}
+                </p>
+                {resultadosBusca.length === 0 ? (
+                  <p style={{ textAlign: 'center', color: '#aa9f88', fontSize: 15 }}>Nenhum produto encontrado. Tenta outro termo!</p>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 22 }}>
+                    {resultadosBusca.map((p, i) => (
+                      <ProdutoCard key={p.id} p={p} delay={(i % 4) * 80} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              sections.map((sec) => (
+                <div key={sec.key} style={{ marginBottom: 40 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+                    <span style={{ width: 44, height: 44, borderRadius: 14, background: sec.bg, flexShrink: 0 }}></span>
+                    <h3 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 700, fontSize: 26, color: '#16313b', margin: 0 }}>{sec.label}</h3>
+                    <span style={{ flex: 1, height: 2, background: '#e7e2d4', borderRadius: 2 }}></span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 22 }}>
+                    {sec.items.map((p, i) => (
+                      <ProdutoCard key={p.id} p={p} delay={(i % 4) * 80} />
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
           </section>
         </Reveal>
 

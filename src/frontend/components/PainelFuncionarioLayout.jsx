@@ -4,11 +4,13 @@ import "../pages/painel-funcionario.css";
 const MENU_POR_CARGO = {
   Atendente: [
     { label: "Prontuário", path: "/funcionario/prontuario" },
+    { label: "Clientes e Pets", path: "/funcionario/clientes-pets" },
     { label: "Agendamentos", path: "/funcionario/agendamentos" },
     { label: "Insumos", path: "/funcionario/insumos" },
   ],
   Gerente: [
     { label: "Prontuário", path: "/funcionario/prontuario" },
+    { label: "Clientes e Pets", path: "/funcionario/clientes-pets" },
     { label: "Agendamentos", path: "/funcionario/agendamentos" },
     { label: "Insumos", path: "/funcionario/insumos" },
     { label: "Gerenciar equipe", path: "/funcionario/equipe" },
@@ -18,6 +20,7 @@ const MENU_POR_CARGO = {
   Veterinario: [
     { label: "Agendamentos", path: "/funcionario/agendamentos" },
     { label: "Prontuário", path: "/funcionario/prontuario" },
+    { label: "Clientes e Pets", path: "/funcionario/clientes-pets" },
     { label: "Solicitações de adoção", path: "/funcionario/adocoes" },
   ],
   Limpeza: [

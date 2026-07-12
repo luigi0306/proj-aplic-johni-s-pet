@@ -20,6 +20,7 @@ import Equipe from './pages/Equipe.jsx'
 import Limpeza from './pages/Limpeza.jsx'
 import Relatorio from './pages/Relatorio.jsx'
 import SolicitacoesAdocao from './pages/SolicitacoesAdocao.jsx'
+import ClientesPets from './pages/ClientesPets.jsx'
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
 
         <Route path="/funcionario/login" element={<LoginFuncionario />} />
         <Route path="/funcionario/prontuario" element={<Prontuario />} />
+        <Route path="/funcionario/clientes-pets" element={<ClientesPets />} />
         <Route path="/funcionario/agendamentos" element={<Agendamentos />} />
         <Route path="/funcionario/insumos" element={<Insumos />} />
         <Route path="/funcionario/equipe" element={<Equipe />} />
@@ -46,7 +48,7 @@ function App() {
         <Route path="/funcionario/relatorio" element={<Relatorio />} />
         <Route path="/funcionario/adocoes" element={<SolicitacoesAdocao />} />
       </Routes>
-      <BackToTop /> 
+      <BackToTop />
       <PawTrail />
     </>
   )
