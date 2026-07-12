@@ -30,8 +30,8 @@ const TEAM = [
 
 function Sobre() {
   return (
-    <div style={{ background: '#F4F1EA', minHeight: '100vh', display: 'flex', justifyContent: 'center', fontFamily: "'Nunito', sans-serif" }}>
-      <div style={{ width: '100%', maxWidth: 1180, background: '#F4F1EA', overflow: 'hidden', position: 'relative' }}>
+    <div style={{ background: '#F4F1EA', minHeight: '100vh', display: 'flex', fontFamily: "'Nunito', sans-serif" }}>
+      <div style={{ width: '100%', background: '#F4F1EA', overflow: 'hidden', position: 'relative' }}>
 
         
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', background: '#FFB68C', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(232,131,70,.22)' }}>

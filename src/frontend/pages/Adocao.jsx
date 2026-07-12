@@ -71,7 +71,7 @@ function Adocao() {
   const heroTransform = 'translateY(' + (-parallaxOffset) + 'px) rotate(' + (hoverHero ? '0deg' : '3deg') + ') scale(' + (hoverHero ? 1.04 : 1) + ')'
 
   return (
-    <div style={{ background: '#EA9CAF', minHeight: '100vh', display: 'flex', justifyContent: 'center', fontFamily: "'Nunito', sans-serif" }}>
+    <div style={{ background: '#EA9CAF', minHeight: '100vh', display: 'flex', fontFamily: "'Nunito', sans-serif" }}>
       <style>{`
         .chew-adocao-grid { grid-template-columns: repeat(4, 1fr); }
         @media (max-width: 980px) {
@@ -81,7 +81,7 @@ function Adocao() {
         .chew-doacao-section { flex-wrap: wrap; }
         .chew-doacao-section > div:last-child { min-width: 280px; }
       `}</style>
-      <div style={{ width: '100%', maxWidth: 1180, background: '#EA9CAF', position: 'relative' }}>
+      <div style={{ width: '100%', background: '#EA9CAF', position: 'relative' }}>
 
 
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', background: '#fbb6c4', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(190,140,140,.2)', flexWrap: 'wrap', gap: 12 }}>

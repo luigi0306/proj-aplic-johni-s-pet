@@ -215,8 +215,8 @@ function Produtos() {
     .filter((s) => s.items.length > 0)
 
   return (
-    <div style={{ background: '#F7F4EE', minHeight: '100vh', display: 'flex', justifyContent: 'center', fontFamily: "'Nunito', sans-serif" }}>
-      <div style={{ width: '100%', maxWidth: 1180, background: '#F7F4EE', position: 'relative' }}>
+    <div style={{ background: '#F7F4EE', minHeight: '100vh', display: 'flex', fontFamily: "'Nunito', sans-serif" }}>
+      <div style={{ width: '100%', background: '#F7F4EE', position: 'relative' }}>
 
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', background: '#FFD57C', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(214,168,70,.25)', flexWrap: 'wrap', gap: 12 }}>
           <Link to="/" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 34, textDecoration: 'none', letterSpacing: '.5px', color: '#16313b' }}>CHEW!!</Link>

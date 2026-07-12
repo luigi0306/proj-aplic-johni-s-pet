@@ -1,19 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PainelFuncionarioLayout from "../components/PainelFuncionarioLayout";
 import "./painel-funcionario.css";
 
-// Mock — substituir por chamada real ao endpoint de estoque (FastAPI)
-const ESTOQUE_INICIAL = [
-  { id: 1, nome: "Shampoo neutro", quantidade: 35 },
-  { id: 2, nome: "Luvas descartáveis (par)", quantidade: 200 },
-  { id: 3, nome: "Seringas", quantidade: 150 },
-  { id: 4, nome: "Álcool 70%", quantidade: 8 },
-];
-
 const LIMITE_ESTOQUE_BAIXO = 10;
 
-// Mock — lista de pedidos de compra. Substituir por endpoint real
-// (POST/GET /insumos/pedidos) quando o backend tiver isso pronto.
 const PEDIDOS_INICIAIS = [
   { id: 1, nome: "Álcool 70%", quantidade: 20, status: "pendente" },
 ];
@@ -24,43 +14,90 @@ const LABEL_STATUS_PEDIDO = {
 };
 
 export default function Insumos() {
-  const [estoque, setEstoque] = useState(ESTOQUE_INICIAL);
-  const [insumoSelecionado, setInsumoSelecionado] = useState(
-    ESTOQUE_INICIAL[0].nome
-  );
+  const [estoque, setEstoque] = useState([]);
+  const [insumoSelecionado, setInsumoSelecionado] = useState("");
   const [quantidadeUsada, setQuantidadeUsada] = useState(1);
   const [mensagem, setMensagem] = useState("");
+  const [tipoMensagem, setTipoMensagem] = useState("success");
 
-  const [pedidos, setPedidos] = useState(PEDIDOS_INICIAIS);
+  const [pedidos, setPedidos] = useState([]);
   const [nomePedido, setNomePedido] = useState("");
   const [quantidadePedido, setQuantidadePedido] = useState(1);
+  const [loading, setLoading] = useState(true);
 
-  function handleRegistrar(e) {
+  async function carregarEstoque() {
+    try {
+      const res = await fetch("http://localhost:3000/api/insumos");
+      if (!res.ok) throw new Error("Erro ao buscar estoque de insumos.");
+      const data = await res.json();
+      setEstoque(data);
+      if (data.length > 0) {
+        setInsumoSelecionado(function(prev) {
+          const existe = data.some(item => item.id_insumo === Number(prev));
+          return existe ? prev : data[0].id_insumo;
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      setMensagem("Não foi possível carregar o estoque: " + err.message);
+      setTipoMensagem("error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    carregarEstoque();
+
+    try {
+      const savedPedidos = localStorage.getItem("chew_pedidos_compra");
+      if (savedPedidos) {
+        setPedidos(JSON.parse(savedPedidos));
+      } else {
+        setPedidos(PEDIDOS_INICIAIS);
+        localStorage.setItem("chew_pedidos_compra", JSON.stringify(PEDIDOS_INICIAIS));
+      }
+    } catch (e) {
+      console.error("Erro ao ler pedidos do localStorage", e);
+      setPedidos(PEDIDOS_INICIAIS);
+    }
+  }, []);
+
+  async function handleRegistrar(e) {
     e.preventDefault();
     const qtd = Number(quantidadeUsada);
-    if (!qtd || qtd <= 0) {
+    if (!qtd || qtd <= 0 || !insumoSelecionado) {
       return;
     }
 
-    // TODO: enviar para o backend (POST /insumos/uso) quando disponível
-    const novoEstoque = estoque.map(function (item) {
-      if (item.nome === insumoSelecionado) {
-        const restante = item.quantidade - qtd;
-        const quantidadeFinal = restante < 0 ? 0 : restante;
-        return { id: item.id, nome: item.nome, quantidade: quantidadeFinal };
+    try {
+      const res = await fetch("http://localhost:3000/api/insumos/uso", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_insumo: Number(insumoSelecionado),
+          quantidade_usada: qtd,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error?.message || data.message || "Erro ao registrar uso.");
       }
-      return item;
-    });
 
-    setEstoque(novoEstoque);
-    setMensagem("Baixa de " + qtd + " unidade(s) registrada — estoque atualizado automaticamente.");
-  }
+      const insumo = estoque.find(item => item.id_insumo === Number(insumoSelecionado));
+      const nomeInsumo = insumo ? insumo.nome : "insumo";
 
-  function getClasseEstoque(quantidade) {
-    if (quantidade <= LIMITE_ESTOQUE_BAIXO) {
-      return "chew-badge estoque-baixo";
+      setMensagem(`Baixa de ${qtd} unidade(s) de "${nomeInsumo}" registrada — estoque atualizado.`);
+      setTipoMensagem("success");
+      setQuantidadeUsada(1);
+      
+      await carregarEstoque();
+    } catch (err) {
+      console.error(err);
+      setMensagem("Erro ao registrar uso: " + err.message);
+      setTipoMensagem("error");
     }
-    return "";
   }
 
   function handleRegistrarPedido(e) {
@@ -69,7 +106,6 @@ export default function Insumos() {
       return;
     }
 
-    // TODO: enviar para o backend (POST /insumos/pedidos) quando disponível
     const novo = {
       id: Date.now(),
       nome: nomePedido,
@@ -77,21 +113,71 @@ export default function Insumos() {
       status: "pendente",
     };
 
-    setPedidos([novo, ...pedidos]);
+    const novosPedidos = [novo, ...pedidos];
+    setPedidos(novosPedidos);
+    localStorage.setItem("chew_pedidos_compra", JSON.stringify(novosPedidos));
     setNomePedido("");
     setQuantidadePedido(1);
   }
 
-  function marcarComoComprado(id) {
-    // TODO: enviar para o backend (PATCH /insumos/pedidos/:id) quando disponível
-    setPedidos(function (prev) {
-      return prev.map(function (p) {
+  async function marcarComoComprado(id) {
+    const pedido = pedidos.find(p => p.id === id);
+    if (!pedido) return;
+
+    try {
+      const nomeNormalizado = pedido.nome.trim().toLowerCase();
+      const insumoExistente = estoque.find(
+        item => item.nome.trim().toLowerCase() === nomeNormalizado
+      );
+
+      if (insumoExistente) {
+        const novaQtd = insumoExistente.quantidade_estoque + pedido.quantidade;
+        const res = await fetch(`http://localhost:3000/api/insumos/${insumoExistente.id_insumo}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            quantidade_estoque: novaQtd
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error?.message || errData.message || "Erro ao atualizar estoque.");
+        }
+      } else {
+        const res = await fetch("http://localhost:3000/api/insumos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nome: pedido.nome,
+            quantidade_estoque: pedido.quantidade
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error?.message || errData.message || "Erro ao criar novo insumo.");
+        }
+      }
+
+      const novosPedidos = pedidos.map(function (p) {
         if (p.id === id) {
-          return { id: p.id, nome: p.nome, quantidade: p.quantidade, status: "comprado" };
+          return { ...p, status: "comprado" };
         }
         return p;
       });
-    });
+      setPedidos(novosPedidos);
+      localStorage.setItem("chew_pedidos_compra", JSON.stringify(novosPedidos));
+      
+      setMensagem(`Pedido de "${pedido.nome}" comprado — estoque atualizado.`);
+      setTipoMensagem("success");
+
+      await carregarEstoque();
+    } catch (err) {
+      console.error(err);
+      setMensagem("Erro ao processar compra: " + err.message);
+      setTipoMensagem("error");
+    }
   }
 
   return (
@@ -100,148 +186,167 @@ export default function Insumos() {
         <h1 className="chew-content-title">Insumos</h1>
       </div>
 
-      <div className="chew-content-grid">
-        <div className="chew-panel">
-          <h2 className="chew-panel-title">Registrar uso de insumo</h2>
-          <form onSubmit={handleRegistrar}>
-            <label className="chew-field-label">Insumo</label>
-            <select
-              className="chew-input-dark"
-              value={insumoSelecionado}
-              onChange={function (e) { setInsumoSelecionado(e.target.value); }}
-            >
-              {estoque.map(function (item) {
-                return (
-                  <option key={item.id} value={item.nome}>
-                    {item.nome}
-                  </option>
-                );
-              })}
-            </select>
-
-            <label className="chew-field-label">Quantidade usada</label>
-            <input
-              type="number"
-              min="1"
-              className="chew-input-dark"
-              value={quantidadeUsada}
-              onChange={function (e) { setQuantidadeUsada(e.target.value); }}
-            />
-
-            <button type="submit" className="chew-btn-orange">
-              Registrar uso
-            </button>
-          </form>
-
-          {mensagem && <div className="chew-success-hint">{mensagem}</div>}
+      {loading ? (
+        <div className="chew-panel" style={{ textAlign: "center", padding: "2rem" }}>
+          <p style={{ color: "var(--chew-text-muted-light)" }}>Carregando insumos...</p>
         </div>
+      ) : (
+        <>
+          <div className="chew-content-grid">
+            <div className="chew-panel">
+              <h2 className="chew-panel-title">Registrar uso de insumo</h2>
+              {estoque.length === 0 ? (
+                <p style={{ color: "var(--chew-text-muted-light)" }}>Nenhum insumo disponível no estoque.</p>
+              ) : (
+                <form onSubmit={handleRegistrar}>
+                  <label className="chew-field-label">Insumo</label>
+                  <select
+                    className="chew-input-dark"
+                    value={insumoSelecionado}
+                    onChange={function (e) { setInsumoSelecionado(Number(e.target.value)); }}
+                  >
+                    {estoque.map(function (item) {
+                      return (
+                        <option key={item.id_insumo} value={item.id_insumo}>
+                          {item.nome}
+                        </option>
+                      );
+                    })}
+                  </select>
 
-        <div className="chew-panel">
-          <h2 className="chew-panel-title">Estoque atual</h2>
-          <table className="chew-table">
-            <thead>
-              <tr>
-                <th>Insumo</th>
-                <th>Estoque atual</th>
-              </tr>
-            </thead>
-            <tbody>
-              {estoque.map(function (item) {
-                return (
-                  <tr key={item.id}>
-                    <td>{item.nome}</td>
-                    <td>
-                      <span
-                        className={
-                          item.quantidade <= LIMITE_ESTOQUE_BAIXO
-                            ? "chew-badge estoque-baixo"
-                            : ""
-                        }
-                      >
-                        {item.quantidade}
-                      </span>
-                    </td>
+                  <label className="chew-field-label">Quantidade usada</label>
+                  <input
+                    type="number"
+                    min="1"
+                    className="chew-input-dark"
+                    value={quantidadeUsada}
+                    onChange={function (e) { setQuantidadeUsada(e.target.value); }}
+                  />
+
+                  <button type="submit" className="chew-btn-orange">
+                    Registrar uso
+                  </button>
+                </form>
+              )}
+
+              {mensagem && (
+                <div 
+                  className={tipoMensagem === "success" ? "chew-success-hint" : "chew-login-alert"}
+                  style={{ marginTop: "1rem", marginBottom: "0rem" }}
+                >
+                  {mensagem}
+                </div>
+              )}
+            </div>
+
+            <div className="chew-panel">
+              <h2 className="chew-panel-title">Estoque atual</h2>
+              <table className="chew-table">
+                <thead>
+                  <tr>
+                    <th>Insumo</th>
+                    <th>Estoque atual</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                </thead>
+                <tbody>
+                  {estoque.map(function (item) {
+                    return (
+                      <tr key={item.id_insumo}>
+                        <td>{item.nome}</td>
+                        <td>
+                          <span
+                            className={
+                              item.quantidade_estoque <= LIMITE_ESTOQUE_BAIXO
+                                ? "chew-badge estoque-baixo"
+                                : ""
+                            }
+                          >
+                            {item.quantidade_estoque}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-      <div className="chew-content-grid" style={{ marginTop: "1.5rem" }}>
-        <div className="chew-panel">
-          <h2 className="chew-panel-title">Solicitar compra</h2>
-          <form onSubmit={handleRegistrarPedido}>
-            <label className="chew-field-label">O que precisa comprar</label>
-            <input
-              className="chew-input-dark"
-              placeholder="Ex: Shampoo antipulgas"
-              value={nomePedido}
-              onChange={function (e) { setNomePedido(e.target.value); }}
-              required
-            />
+          <div className="chew-content-grid" style={{ marginTop: "1.5rem" }}>
+            <div className="chew-panel">
+              <h2 className="chew-panel-title">Solicitar compra</h2>
+              <form onSubmit={handleRegistrarPedido}>
+                <label className="chew-field-label">O que precisa comprar</label>
+                <input
+                  className="chew-input-dark"
+                  placeholder="Ex: Shampoo antipulgas"
+                  value={nomePedido}
+                  onChange={function (e) { setNomePedido(e.target.value); }}
+                  required
+                />
 
-            <label className="chew-field-label">Quantidade desejada</label>
-            <input
-              type="number"
-              min="1"
-              className="chew-input-dark"
-              value={quantidadePedido}
-              onChange={function (e) { setQuantidadePedido(e.target.value); }}
-            />
+                <label className="chew-field-label">Quantidade desejada</label>
+                <input
+                  type="number"
+                  min="1"
+                  className="chew-input-dark"
+                  value={quantidadePedido}
+                  onChange={function (e) { setQuantidadePedido(e.target.value); }}
+                />
 
-            <button type="submit" className="chew-btn-orange">
-              Registrar pedido
-            </button>
-          </form>
-        </div>
+                <button type="submit" className="chew-btn-orange">
+                  Registrar pedido
+                </button>
+              </form>
+            </div>
 
-        <div className="chew-panel">
-          <h2 className="chew-panel-title">Pedidos de compra</h2>
-          <table className="chew-table">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Qtd.</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {pedidos.map(function (p) {
-                return (
-                  <tr key={p.id}>
-                    <td>{p.nome}</td>
-                    <td>{p.quantidade}</td>
-                    <td>
-                      <span
-                        className={
-                          "chew-badge " +
-                          (p.status === "comprado" ? "concluido" : "confirmado")
-                        }
-                      >
-                        {LABEL_STATUS_PEDIDO[p.status]}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: "right" }}>
-                      {p.status === "pendente" && (
-                        <button
-                          className="chew-btn-orange"
-                          style={{ width: "auto", padding: "6px 14px", fontSize: "0.75rem" }}
-                          onClick={function () { marcarComoComprado(p.id); }}
-                        >
-                          Marcar comprado
-                        </button>
-                      )}
-                    </td>
+            <div className="chew-panel">
+              <h2 className="chew-panel-title">Pedidos de compra</h2>
+              <table className="chew-table">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Qtd.</th>
+                    <th>Status</th>
+                    <th></th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                </thead>
+                <tbody>
+                  {pedidos.map(function (p) {
+                    return (
+                      <tr key={p.id}>
+                        <td>{p.nome}</td>
+                        <td>{p.quantidade}</td>
+                        <td>
+                          <span
+                            className={
+                              "chew-badge " +
+                              (p.status === "comprado" ? "concluido" : "confirmado")
+                            }
+                          >
+                            {LABEL_STATUS_PEDIDO[p.status]}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: "right" }}>
+                          {p.status === "pendente" && (
+                            <button
+                              className="chew-btn-orange"
+                              style={{ width: "auto", padding: "6px 14px", fontSize: "0.75rem" }}
+                              onClick={function () { marcarComoComprado(p.id); }}
+                            >
+                              Marcar comprado
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
     </PainelFuncionarioLayout>
   );
 }

@@ -65,8 +65,8 @@ function Home() {
   }
 
   return (
-    <div style={{ background: '#ECEAE4', minHeight: '100vh', display: 'flex', justifyContent: 'center', padding: '22px 0 0', fontFamily: "'Nunito', sans-serif" }}>
-      <div style={{ width: '100%', maxWidth: 1180, background: '#ECEAE4', overflow: 'hidden' }}>
+    <div style={{ background: '#ECEAE4', minHeight: '100vh', display: 'flex', padding: '22px 0 0', fontFamily: "'Nunito', sans-serif" }}>
+      <div style={{ width: '100%', background: '#ECEAE4', overflow: 'hidden' }}>
 
 
         <section style={{ position: 'relative', borderRadius: '6px 6px 0 0', overflow: 'hidden' }}>

@@ -39,6 +39,11 @@ function Login() {
 
   const loginEmail = useRef(null)
   const loginPassword = useRef(null)
+
+  const signFullName = useRef(null)
+  const signCpf = useRef(null)
+  const signPhone = useRef(null)
+  const signAddress = useRef(null)
   const signEmail = useRef(null)
   const signPassword = useRef(null)
   const signPasswordRepeat = useRef(null)
@@ -48,10 +53,10 @@ function Login() {
     try {
       localStorage.setItem('chew_logged_in', '1')
       localStorage.setItem('chew_user', name)
-    } catch {}
+    } catch { }
 
     if (isNewAccount) {
-      try { localStorage.removeItem('chew_after_login') } catch {}
+      try { localStorage.removeItem('chew_after_login') } catch { }
       navigate('/')
       return
     }
@@ -63,7 +68,7 @@ function Login() {
         redirectTo = after
         localStorage.removeItem('chew_after_login')
       }
-    } catch {}
+    } catch { }
     navigate(redirectTo)
   }
 
@@ -85,9 +90,34 @@ function Login() {
   }
 
   function handleSignup() {
+    const fullName = signFullName.current ? signFullName.current.value : ''
+    const cpf = signCpf.current ? signCpf.current.value : ''
+    const phone = signPhone.current ? signPhone.current.value : ''
+    const address = signAddress.current ? signAddress.current.value : ''
+
     const email = signEmail.current ? signEmail.current.value : ''
     const password = signPassword.current ? signPassword.current.value : ''
     const repeat = signPasswordRepeat.current ? signPasswordRepeat.current.value : ''
+
+    if (!fullName.trim()) {
+      setSignupError('Digite seu nome completo.')
+      return
+    }
+
+    if (!cpf.trim()) {
+      setSignupError('Digite seu CPF.')
+      return
+    }
+
+    if (!phone.trim()) {
+      setSignupError('Digite seu telefone.')
+      return
+    }
+
+    if (!address.trim()) {
+      setSignupError('Digite seu endereço.')
+      return
+    }
 
     if (!isValidEmail(email)) {
       setSignupError('Digite um email válido para se cadastrar.')
@@ -140,7 +170,7 @@ function Login() {
 
       <Link to="/" style={{ position: 'fixed', top: 24, left: 30, fontFamily: "'Fredoka', sans-serif", fontWeight: 700, fontSize: 26, color: '#16313b', textDecoration: 'none', zIndex: 20 }}>CHEW!!</Link>
 
-      <div style={{ position: 'relative', width: 980, height: 600, maxWidth: '96vw', borderRadius: 30, overflow: 'hidden', background: '#D7C6EA', boxShadow: '0 30px 70px rgba(110,80,150,.35)' }}>
+      <div style={{ position: 'relative', width: 980, height: 850, maxWidth: '96vw', borderRadius: 30, overflow: 'hidden', background: '#D7C6EA', boxShadow: '0 30px 70px rgba(110,80,150,.35)' }}>
 
         <div style={{ position: 'absolute', top: 0, left: 0, width: '62%', height: '100%', background: '#CBB7E8', overflow: 'hidden' }}>
           <img src="/imagens/loginfundo.jpg" alt="" style={{ position: 'absolute', left: '50%', top: '52%', transform: 'translate(-50%,-50%)', width: '108%', height: 'auto', minHeight: '86%', objectFit: 'contain', mixBlendMode: 'multiply', opacity: .92 }} />
@@ -164,36 +194,182 @@ function Login() {
           <button onClick={handleLogin} style={orangeBtn}>Entrar</button>
           <div style={{ textAlign: 'center', fontSize: 12, color: '#6a6078', margin: '14px 0 12px' }}>Ou continue com</div>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
-            
+
           </div>
           <div style={{ textAlign: 'center', fontSize: 12, color: '#6a6078', marginTop: 16 }}>Não tem conta? <a onClick={() => { setMode('signup'); setLoginError('') }} style={{ fontWeight: 800, color: '#FF6600', textDecoration: 'none', cursor: 'pointer' }}>Se cadastre de graça</a></div>
         </div>
 
         <div style={signupCardStyle}>
-          <div style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 12.5, color: '#FF6600', marginBottom: 2, letterSpacing: '.4px' }}>CHEW!!</div>
-          <h2 style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 30, color: '#111', margin: '0 0 15px' }}>Cadastre-se</h2>
+          <div
+            style={{
+              fontFamily: "'Fredoka', sans-serif",
+              fontWeight: 600,
+              fontSize: 12.5,
+              color: '#FF6600',
+              marginBottom: 2,
+              letterSpacing: '.4px'
+            }}
+          >
+            CHEW!!
+          </div>
+
+          <h2
+            style={{
+              fontFamily: "'Nunito', sans-serif",
+              fontWeight: 800,
+              fontSize: 30,
+              color: '#111',
+              margin: '0 0 15px'
+            }}
+          >
+            Cadastre-se
+          </h2>
+
+          {/* Nome Completo */}
+          <label style={labelStyle}>Nome Completo</label>
+          <input
+            ref={signFullName}
+            type="text"
+            placeholder="Digite seu nome completo"
+            className="chew-auth-input"
+            style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }}
+          />
+
+          {/* CPF */}
+          <label style={labelStyle}>CPF</label>
+          <input
+            ref={signCpf}
+            type="text"
+            placeholder="000.000.000-00"
+            className="chew-auth-input"
+            style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }}
+          />
+
+          {/* Telefone */}
+          <label style={labelStyle}>Telefone</label>
+          <input
+            ref={signPhone}
+            type="tel"
+            placeholder="(61) 99999-9999"
+            className="chew-auth-input"
+            style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }}
+          />
+
+          {/* Endereço */}
+          <label style={labelStyle}>Endereço</label>
+          <input
+            ref={signAddress}
+            type="text"
+            placeholder="Rua, número, bairro"
+            className="chew-auth-input"
+            style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }}
+          />
+
+          {/* Email */}
           <label style={labelStyle}>Email</label>
-          <input ref={signEmail} type="email" autoComplete="email" placeholder="username@gmail.com" className="chew-auth-input" style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }} />
+          <input
+            ref={signEmail}
+            type="email"
+            autoComplete="email"
+            placeholder="username@gmail.com"
+            className="chew-auth-input"
+            style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }}
+          />
+
+          {/* Senha */}
           <label style={labelStyle}>Senha</label>
           <div style={{ position: 'relative', marginBottom: 11 }}>
-            <input ref={signPassword} type={showSA ? 'text' : 'password'} autoComplete="new-password" placeholder="••••••••" className="chew-auth-input" style={inputStyle} />
-            <button type="button" onClick={() => setShowSA(!showSA)} style={eyeBtnStyle}><Eye open={showSA} /></button>
+            <input
+              ref={signPassword}
+              type={showSA ? 'text' : 'password'}
+              autoComplete="new-password"
+              placeholder="••••••••"
+              className="chew-auth-input"
+              style={inputStyle}
+            />
+            <button
+              type="button"
+              onClick={() => setShowSA(!showSA)}
+              style={eyeBtnStyle}
+            >
+              <Eye open={showSA} />
+            </button>
           </div>
+
+          {/* Repetir Senha */}
           <label style={labelStyle}>Repetir Senha</label>
           <div style={{ position: 'relative', marginBottom: 15 }}>
-            <input ref={signPasswordRepeat} type={showSB ? 'text' : 'password'} autoComplete="new-password" placeholder="••••••••" className="chew-auth-input" style={inputStyle} />
-            <button type="button" onClick={() => setShowSB(!showSB)} style={eyeBtnStyle}><Eye open={showSB} /></button>
+            <input
+              ref={signPasswordRepeat}
+              type={showSB ? 'text' : 'password'}
+              autoComplete="new-password"
+              placeholder="••••••••"
+              className="chew-auth-input"
+              style={inputStyle}
+            />
+            <button
+              type="button"
+              onClick={() => setShowSB(!showSB)}
+              style={eyeBtnStyle}
+            >
+              <Eye open={showSB} />
+            </button>
           </div>
+
           {signupError && <p style={errorTextStyle}>{signupError}</p>}
-          <button onClick={handleSignup} style={orangeBtn}>Criar conta</button>
-          <div style={{ textAlign: 'center', fontSize: 12, color: '#6a6078', margin: '14px 0 12px' }}>Ou continue com</div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
-          
+
+          <button onClick={handleSignup} style={orangeBtn}>
+            Criar conta
+          </button>
+
+          <div
+            style={{
+              textAlign: 'center',
+              fontSize: 12,
+              color: '#6a6078',
+              margin: '14px 0 12px'
+            }}
+          >
+            Ou continue com
           </div>
-          <div style={{ textAlign: 'center', fontSize: 12, color: '#6a6078', marginTop: 14 }}>Já tem conta? <a onClick={() => { setMode('login'); setSignupError('') }} style={{ fontWeight: 800, color: '#FF6600', textDecoration: 'none', cursor: 'pointer' }}>Faça Login</a></div>
+
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 12
+            }}
+          >
+          </div>
+
+          <div
+            style={{
+              textAlign: 'center',
+              fontSize: 12,
+              color: '#6a6078',
+              marginTop: 14
+            }}
+          >
+            Já tem conta?{' '}
+            <a
+              onClick={() => {
+                setMode('login')
+                setSignupError('')
+              }}
+              style={{
+                fontWeight: 800,
+                color: '#FF6600',
+                textDecoration: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              Faça Login
+            </a>
+          </div>
         </div>
 
       </div>
+
     </div>
   )
 }

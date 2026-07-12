@@ -115,7 +115,7 @@ function Servicos() {
   const total = ids.reduce((a, id) => a + cart[id].qty * cart[id].price, 0)
 
   return (
-    <div style={{ background: '#ECEAE4', minHeight: '100vh', display: 'flex', justifyContent: 'center', fontFamily: "'Nunito', sans-serif" }}>
+    <div style={{ background: '#ECEAE4', minHeight: '100vh', display: 'flex', fontFamily: "'Nunito', sans-serif" }}>
       <style>{`
         .chew-header-nav { flex-wrap: wrap; justify-content: flex-end; }
         .chew-hero-servicos { flex-wrap: wrap; }
@@ -128,7 +128,7 @@ function Servicos() {
           .chew-hero-servicos { padding: 40px 32px !important; }
         }
       `}</style>
-      <div style={{ width: '100%', maxWidth: 1180, background: '#ECEAE4', position: 'relative' }}>
+      <div style={{ width: '100%', background: '#ECEAE4', position: 'relative' }}>
 
         {/* CABEÇALHO! */}
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', background: '#FFB68C', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(232,131,70,.22)', flexWrap: 'wrap', gap: 12 }}>

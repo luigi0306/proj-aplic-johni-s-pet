@@ -32,8 +32,8 @@ function Adotar() {
   }
 
   return (
-    <div style={{ background: '#F2AFBC', minHeight: '100vh', display: 'flex', justifyContent: 'center', fontFamily: "'Nunito', sans-serif" }}>
-      <div style={{ width: '100%', maxWidth: 1180, background: '#F2AFBC', position: 'relative' }}>
+    <div style={{ background: '#F2AFBC', minHeight: '100vh', display: 'flex', fontFamily: "'Nunito', sans-serif" }}>
+      <div style={{ width: '100%', background: '#F2AFBC', position: 'relative' }}>
 
         {/* cabeçalho */}
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', background: '#9E182B', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(158,24,43,.3)' }}>

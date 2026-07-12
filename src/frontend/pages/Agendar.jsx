@@ -243,8 +243,8 @@ function Agendar() {
   }
 
   return (
-    <div style={{ background: '#F2FAFB', minHeight: '100vh', display: 'flex', justifyContent: 'center', fontFamily: "'Nunito', sans-serif" }}>
-      <div style={{ width: '100%', maxWidth: 1180, background: '#F2FAFB', position: 'relative' }}>
+    <div style={{ background: '#F2FAFB', minHeight: '100vh', display: 'flex', fontFamily: "'Nunito', sans-serif" }}>
+      <div style={{ width: '100%', background: '#F2FAFB', position: 'relative' }}>
 
         {/* cabeçalho */}
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(120,183,118,.3)', background: '#C4EEB8' }}>

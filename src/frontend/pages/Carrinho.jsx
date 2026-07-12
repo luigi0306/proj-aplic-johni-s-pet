@@ -70,7 +70,7 @@ function Carrinho() {
   const methods = [['card', 'Cartão'], ['pix', 'Pix'], ['boleto', 'Boleto']]
 
   return (
-    <div style={{ background: '#F4F1EA', minHeight: '100vh', display: 'flex', justifyContent: 'center', fontFamily: "'Nunito', sans-serif" }}>
+    <div style={{ background: '#F4F1EA', minHeight: '100vh', display: 'flex', fontFamily: "'Nunito', sans-serif" }}>
       <style>{`
         .chew-carrinho-header-nav { flex-wrap: wrap; }
         .chew-carrinho-body { flex-wrap: wrap; }
@@ -81,7 +81,7 @@ function Carrinho() {
           .chew-carrinho-card-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
-      <div style={{ width: '100%', maxWidth: 1180, background: '#F4F1EA', position: 'relative' }}>
+      <div style={{ width: '100%', background: '#F4F1EA', position: 'relative' }}>
 
 
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', background: '#16313b', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(0,0,0,.18)', flexWrap: 'wrap', gap: 12 }}>

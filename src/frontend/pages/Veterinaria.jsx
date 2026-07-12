@@ -110,7 +110,7 @@ function Veterinaria() {
   const total = ids.reduce((a, id) => a + cart[id].qty * cart[id].price, 0)
 
   return (
-    <div style={{ background: '#F2FAFB', minHeight: '100vh', display: 'flex', justifyContent: 'center', fontFamily: "'Nunito', sans-serif" }}>
+    <div style={{ background: '#F2FAFB', minHeight: '100vh', display: 'flex', fontFamily: "'Nunito', sans-serif" }}>
       <style>{`
         .chew-vet-header-nav { flex-wrap: wrap; justify-content: flex-end; }
         .chew-vet-hero { flex-wrap: wrap; }
@@ -127,7 +127,7 @@ function Veterinaria() {
           .chew-vet-faq { grid-template-columns: 1fr !important; }
         }
       `}</style>
-      <div style={{ width: '100%', maxWidth: 1180, background: '#F2FAFB', position: 'relative' }}>
+      <div style={{ width: '100%', background: '#F2FAFB', position: 'relative' }}>
 
         {/* CABEÇALHO */}
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 40px', background: '#B8E8EE', borderRadius: '0 0 26px 26px', boxShadow: '0 6px 18px rgba(120,190,200,.3)', flexWrap: 'wrap', gap: 12 }}>
