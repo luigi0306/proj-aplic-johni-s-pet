@@ -11,14 +11,15 @@ interface ServicoInput {
 export const listarAgendamentos = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const queryText = `
-      SELECT a.*, p.nome as pet_name, f.nome as funcionario_name,
+      SELECT a.*, p.nome as pet_name, f.nome as funcionario_name, c.nome as cliente_name,
              coalesce(json_agg(json_build_object('id_servico', s.id_servico, 'nome', s.nome, 'preco_cobrado', asv.preco_cobrado)) FILTER (WHERE s.id_servico IS NOT NULL), '[]') as servicos
       FROM agendamento a
       LEFT JOIN pet p ON a.id_pet = p.id_pet
+      LEFT JOIN cliente c ON p.id_cliente = c.id_cliente
       LEFT JOIN funcionario f ON a.id_funcionario = f.id_funcionario
       LEFT JOIN agendamento_servico asv ON a.id_agendamento = asv.id_agendamento
       LEFT JOIN servico s ON asv.id_servico = s.id_servico
-      GROUP BY a.id_agendamento, p.id_pet, f.id_funcionario
+      GROUP BY a.id_agendamento, p.id_pet, f.id_funcionario, c.id_cliente
       ORDER BY a.data_agendamento DESC, a.hora DESC
     `;
     const { rows } = await db.query(queryText);
@@ -33,15 +34,16 @@ export const buscarAgendamentoPorId = async (req: Request, res: Response, next: 
   const { id } = req.params;
   try {
     const queryText = `
-      SELECT a.*, p.nome as pet_name, f.nome as funcionario_name,
+      SELECT a.*, p.nome as pet_name, f.nome as funcionario_name, c.nome as cliente_name,
              coalesce(json_agg(json_build_object('id_servico', s.id_servico, 'nome', s.nome, 'preco_cobrado', asv.preco_cobrado)) FILTER (WHERE s.id_servico IS NOT NULL), '[]') as servicos
       FROM agendamento a
       LEFT JOIN pet p ON a.id_pet = p.id_pet
+      LEFT JOIN cliente c ON p.id_cliente = c.id_cliente
       LEFT JOIN funcionario f ON a.id_funcionario = f.id_funcionario
       LEFT JOIN agendamento_servico asv ON a.id_agendamento = asv.id_agendamento
       LEFT JOIN servico s ON asv.id_servico = s.id_servico
       WHERE a.id_agendamento = $1
-      GROUP BY a.id_agendamento, p.id_pet, f.id_funcionario
+      GROUP BY a.id_agendamento, p.id_pet, f.id_funcionario, c.id_cliente
     `;
     const { rows } = await db.query(queryText, [id]);
     if (rows.length === 0) {
