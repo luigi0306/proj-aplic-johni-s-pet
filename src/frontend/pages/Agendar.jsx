@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Reveal from '../components/Reveal.jsx'
 
@@ -11,11 +11,13 @@ const ALL_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00'
 
 function isLogged() { try { return localStorage.getItem('chew_logged_in') === '1' } catch { return false } }
 function getServico() { try { return new URLSearchParams(window.location.search).get('servico') || 'vet' } catch { return 'vet' } }
+function getLoggedInClient() { try { return JSON.parse(localStorage.getItem('chew_cliente') || '{}') } catch { return {} } }
 const fmtDate = (d) => d.getDate() + ' de ' + MONTHS[d.getMonth()];
 
 function Agendar() {
   const navigate = useNavigate()
   const servico = getServico()
+  const loggedInClient = getLoggedInClient()
   const now = new Date()
   const [ym, setYm] = useState({ y: now.getFullYear(), m: now.getMonth() })
   const [sel, setSel] = useState(null)
@@ -31,9 +33,11 @@ function Agendar() {
   const [apiError, setApiError] = useState(null)
 
   // Selection states
-  const [selectedServiceId, setSelectedServiceId] = useState('')
+  const [selectedServiceIds, setSelectedServiceIds] = useState([])
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('')
-  const [selectedClientId, setSelectedClientId] = useState('')
+  const [selectedClientId, setSelectedClientId] = useState(() => {
+    return loggedInClient.id_cliente ? String(loggedInClient.id_cliente) : ''
+  })
   const [selectedPetId, setSelectedPetId] = useState('')
 
   // Form states for NEW client
@@ -108,38 +112,58 @@ function Agendar() {
   for (let dn = 1; dn <= daysInMonth; dn++) cells.push(new Date(y, m, dn))
 
   // Service filters
-  const filteredServices = services.filter(s => {
-    const name = (s.nome || '').toLowerCase()
-    if (servico === 'tosa') {
-      return name.includes('banho') || name.includes('tosa') || name.includes('unha') || name.includes('pelagem')
-    } else {
-      return name.includes('consulta') || name.includes('vacina') || name.includes('pulgas') || name.includes('exame') || name.includes('cirurgia')
-    }
-  })
-  const displayServices = filteredServices.length > 0 ? filteredServices : services
+  const displayServices = useMemo(() => {
+    const filtered = services.filter(s => {
+      const name = (s.nome || '').toLowerCase()
+      if (servico === 'tosa') {
+        return name.includes('banho') || name.includes('tosa') || name.includes('unha') || name.includes('pelagem')
+      } else {
+        return name.includes('consulta') || name.includes('vacina') || name.includes('pulgas') || name.includes('exame') || name.includes('cirurgia')
+      }
+    })
+    return filtered.length > 0 ? filtered : services
+  }, [services, servico])
 
   // Employee filters
-  const filteredEmployees = employees.filter(e => {
-    if (servico === 'tosa') {
-      return e.cargo === 'Groomer'
+  const displayEmployees = useMemo(() => {
+    const filtered = employees.filter(e => {
+      if (servico === 'tosa') {
+        return e.cargo === 'Groomer'
+      } else {
+        return e.cargo === 'Gerente' || e.cargo === 'Atendente' || e.cargo === 'Groomer'
+      }
+    })
+    return filtered.length > 0 ? filtered : employees
+  }, [employees, servico])
+
+  // Auto-select employee based on displayEmployees
+  useEffect(() => {
+    if (displayEmployees.length > 0) {
+      setSelectedEmployeeId(String(displayEmployees[0].id_funcionario))
     } else {
-      return e.cargo === 'Gerente' || e.cargo === 'Atendente' || e.cargo === 'Groomer'
+      setSelectedEmployeeId('')
     }
-  })
-  const displayEmployees = filteredEmployees.length > 0 ? filteredEmployees : employees
+  }, [displayEmployees])
 
   // Filter pets by selected client
   const clientPets = pets.filter(p => p.id_cliente === Number(selectedClientId))
 
-  const selectedService = services.find(s => s.id_servico === Number(selectedServiceId))
-  const selectedEmployee = employees.find(e => e.id_funcionario === Number(selectedEmployeeId))
+  const selectedServices = useMemo(() => {
+    return services.filter(s => selectedServiceIds.includes(String(s.id_servico)))
+  }, [services, selectedServiceIds])
+
+  const totalValue = useMemo(() => {
+    return selectedServices.reduce((sum, s) => sum + Number(s.preco_base), 0)
+  }, [selectedServices])
 
   const isClientReady = selectedClientId && (selectedClientId !== 'new' || (newClientName && newClientCpf && newClientPhone && newClientAddress))
   const isPetReady = selectedPetId && (selectedPetId !== 'new' || newPetName)
-  const ready = sel && slot && selectedServiceId && selectedEmployeeId && isClientReady && isPetReady
+  const ready = sel && slot && selectedServiceIds.length > 0 && selectedEmployeeId && isClientReady && isPetReady
 
-  const selectedServiceName = selectedService ? selectedService.nome : '—'
-  const summary = ready ? `${fmtDate(sel)} • ${slot} • ${selectedServiceName}` : 'Selecione data, horário, tutor, pet, serviço e profissional'
+  const selectedServiceNames = selectedServices.length > 0
+    ? selectedServices.map(s => s.nome).join(', ')
+    : '—'
+  const summary = ready ? `${fmtDate(sel)} • ${slot} • ${selectedServiceNames} (R$ ${totalValue.toFixed(2)})` : 'Selecione data, horário, pet e pelo menos um serviço'
   const heading = servico === 'tosa' ? 'Agende o banho do seu pet' : 'Agende a consulta do seu pet'
 
   function prevMonth() { setYm((s) => { let mm = s.m - 1, yy = s.y; if (mm < 0) { mm = 11; yy-- } return { y: yy, m: mm } }) }
@@ -212,13 +236,11 @@ function Agendar() {
         data_agendamento: formatDateForApi(sel),
         hora: slot,
         status: 'Agendado',
-        valor_total: Number(selectedService.preco_base),
-        servicos: [
-          {
-            id_servico: Number(selectedService.id_servico),
-            preco_cobrado: Number(selectedService.preco_base)
-          }
-        ]
+        valor_total: totalValue,
+        servicos: selectedServices.map(s => ({
+          id_servico: Number(s.id_servico),
+          preco_cobrado: Number(s.preco_base)
+        }))
       }
 
       const appointmentRes = await fetch('http://localhost:3000/api/agendamentos', {
@@ -340,49 +362,16 @@ function Agendar() {
                       <h3 style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 18, color: '#16313b', margin: '0 0 16px' }}>Dados do atendimento</h3>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        {/* Seleção do Tutor / Cliente */}
+                        {/* Tutor / Cliente (Leitura apenas) */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6 }}>
                           <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#4a5558' }}>Tutor / Cliente</label>
-                          <select
-                            value={selectedClientId}
-                            onChange={(e) => {
-                              setSelectedClientId(e.target.value);
-                              setSelectedPetId('');
-                            }}
-                            style={{ width: '100%', height: 46, border: '1.5px solid #d8eaee', borderRadius: 12, padding: '0 14px', fontSize: 14 }}
-                          >
-                            <option value="">Selecione um cliente cadastrado...</option>
-                            <option value="new">+ Cadastrar Novo Cliente</option>
-                            {clients.map(c => (
-                              <option key={c.id_cliente} value={c.id_cliente}>
-                                {c.nome} (CPF: {c.cpf})
-                              </option>
-                            ))}
-                          </select>
+                          <input
+                            type="text"
+                            value={loggedInClient.nome || ''}
+                            disabled
+                            style={{ width: '100%', height: 46, border: '1.5px solid #d8eaee', borderRadius: 12, padding: '0 14px', fontSize: 14, background: '#f5f5f5', color: '#777', cursor: 'not-allowed' }}
+                          />
                         </div>
-
-                        {/* Formulário de Novo Cliente */}
-                        {selectedClientId === 'new' && (
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 14px', background: '#fcf8f2', border: '1px dashed #e8c6a0', padding: 16, borderRadius: 16 }}>
-                            <div style={{ gridColumn: '1 / -1', fontWeight: 700, fontSize: 14, color: '#8c5310' }}>Dados do Novo Tutor</div>
-                            <div>
-                              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#4a5558', marginBottom: 4 }}>Nome Completo</label>
-                              <input type="text" value={newClientName} onChange={(e) => setNewClientName(e.target.value)} placeholder="Ex: João da Silva" style={{ width: '100%', height: 40, border: '1.5px solid #d8eaee', borderRadius: 10, padding: '0 12px', fontSize: 13 }} />
-                            </div>
-                            <div>
-                              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#4a5558', marginBottom: 4 }}>CPF</label>
-                              <input type="text" value={newClientCpf} onChange={(e) => setNewClientCpf(e.target.value)} placeholder="Ex: 123.456.789-00" style={{ width: '100%', height: 40, border: '1.5px solid #d8eaee', borderRadius: 10, padding: '0 12px', fontSize: 13 }} />
-                            </div>
-                            <div>
-                              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#4a5558', marginBottom: 4 }}>Telefone</label>
-                              <input type="tel" value={newClientPhone} onChange={(e) => setNewClientPhone(e.target.value)} placeholder="Ex: (61) 99999-9999" style={{ width: '100%', height: 40, border: '1.5px solid #d8eaee', borderRadius: 10, padding: '0 12px', fontSize: 13 }} />
-                            </div>
-                            <div>
-                              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#4a5558', marginBottom: 4 }}>Endereço</label>
-                              <input type="text" value={newClientAddress} onChange={(e) => setNewClientAddress(e.target.value)} placeholder="Ex: Av. Central, 123" style={{ width: '100%', height: 40, border: '1.5px solid #d8eaee', borderRadius: 10, padding: '0 12px', fontSize: 13 }} />
-                            </div>
-                          </div>
-                        )}
 
                         {/* Seleção do Pet */}
                         {(selectedClientId && selectedClientId !== '') && (
@@ -395,7 +384,7 @@ function Agendar() {
                             >
                               <option value="">Selecione o pet...</option>
                               <option value="new">+ Cadastrar Novo Pet</option>
-                              {selectedClientId !== 'new' && clientPets.map(p => (
+                              {clientPets.map(p => (
                                 <option key={p.id_pet} value={p.id_pet}>
                                   {p.nome} {p.raca ? `(${p.raca})` : ''}
                                 </option>
@@ -439,38 +428,62 @@ function Agendar() {
                           </div>
                         )}
 
-                        {/* Seleção do Serviço */}
+                        {/* Seleção do Serviço (Múltipla) */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6 }}>
-                          <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#4a5558' }}>Serviço desejado</label>
-                          <select
-                            value={selectedServiceId}
-                            onChange={(e) => setSelectedServiceId(e.target.value)}
-                            style={{ width: '100%', height: 46, border: '1.5px solid #d8eaee', borderRadius: 12, padding: '0 14px', fontSize: 14 }}
-                          >
-                            <option value="">Selecione o serviço...</option>
-                            {displayServices.map(s => (
-                              <option key={s.id_servico} value={s.id_servico}>
-                                {s.nome} (R$ {Number(s.preco_base).toFixed(2)})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* Seleção do Profissional */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6 }}>
-                          <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#4a5558' }}>Profissional</label>
-                          <select
-                            value={selectedEmployeeId}
-                            onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                            style={{ width: '100%', height: 46, border: '1.5px solid #d8eaee', borderRadius: 12, padding: '0 14px', fontSize: 14 }}
-                          >
-                            <option value="">Selecione o profissional...</option>
-                            {displayEmployees.map(e => (
-                              <option key={e.id_funcionario} value={e.id_funcionario}>
-                                {e.nome} ({e.cargo})
-                              </option>
-                            ))}
-                          </select>
+                          <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#4a5558' }}>Serviços desejados</label>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: '250px', overflowY: 'auto', paddingRight: '4px' }}>
+                            {displayServices.map(s => {
+                              const isSelected = selectedServiceIds.includes(String(s.id_servico));
+                              return (
+                                <div
+                                  key={s.id_servico}
+                                  onClick={() => {
+                                    if (isSelected) {
+                                      setSelectedServiceIds(selectedServiceIds.filter(id => id !== String(s.id_servico)));
+                                    } else {
+                                      setSelectedServiceIds([...selectedServiceIds, String(s.id_servico)]);
+                                    }
+                                  }}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '12px 16px',
+                                    borderRadius: 12,
+                                    border: `1.5px solid ${isSelected ? '#0E8C9E' : '#d8eaee'}`,
+                                    background: isSelected ? 'rgba(14,140,158,.06)' : '#fff',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: isSelected ? '0 4px 12px rgba(14,140,158,0.1)' : 'none'
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                    <div style={{
+                                      width: 20,
+                                      height: 20,
+                                      borderRadius: 6,
+                                      border: `1.5px solid ${isSelected ? '#0E8C9E' : '#9aa8ab'}`,
+                                      background: isSelected ? '#0E8C9E' : 'transparent',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      transition: 'all 0.2s'
+                                    }}>
+                                      {isSelected && (
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                          <path d="M20 6L9 17l-5-5" />
+                                        </svg>
+                                      )}
+                                    </div>
+                                    <span style={{ fontSize: 14, fontWeight: 600, color: '#16313b' }}>{s.nome}</span>
+                                  </div>
+                                  <span style={{ fontSize: 14, fontWeight: 700, color: '#E8530E' }}>
+                                    R$ {Number(s.preco_base).toFixed(2)}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
 
