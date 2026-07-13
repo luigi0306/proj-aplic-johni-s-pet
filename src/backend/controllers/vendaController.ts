@@ -78,7 +78,7 @@ export const criarVenda = async (req: Request, res: Response, next: NextFunction
       const { id_produto, quantidade } = prod;
 
       // 2.1 Fetch current product stock
-      const prodResult = await client.query('SELECT estoque_atual, nome FROM produto WHERE id_produto = $1 FOR UPDATE', [id_produto]);
+      const prodResult = await client.query('SELECT estoque_atual, nome, preco FROM produto WHERE id_produto = $1 FOR UPDATE', [id_produto]);
       if (prodResult.rows.length === 0) {
         throw new AppError(`Produto com ID ${id_produto} não encontrado.`, 404);
       }
@@ -101,10 +101,10 @@ export const criarVenda = async (req: Request, res: Response, next: NextFunction
 
       // 2.3 Insert junction
       const insertJunctionQuery = `
-        INSERT INTO venda_produto (id_venda, id_produto, quantidade)
-        VALUES ($1, $2, $3)
+        INSERT INTO venda_produto (id_venda, id_produto, quantidade, preco_unitario)
+        VALUES ($1, $2, $3, $4)
       `;
-      await client.query(insertJunctionQuery, [newVenda.id_venda, id_produto, quantidade]);
+      await client.query(insertJunctionQuery, [newVenda.id_venda, id_produto, quantidade, product.preco]);
     }
 
     await client.query('COMMIT');

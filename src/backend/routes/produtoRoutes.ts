@@ -6,6 +6,7 @@ import { criarProdutoSchema, atualizarProdutoSchema, filtrarProdutosSchema } fro
 const router = express.Router();
 
 router.get('/', validateQuery(filtrarProdutosSchema), produtoController.listarProdutos);
+router.get('/busca', produtoController.pesquisarProdutos);
 router.get('/:id', produtoController.buscarProdutoPorId);
 router.post('/', validateBody(criarProdutoSchema), produtoController.criarProduto);
 router.put('/:id', validateBody(atualizarProdutoSchema), produtoController.atualizarProduto);

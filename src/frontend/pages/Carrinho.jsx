@@ -58,13 +58,67 @@ function Carrinho() {
       return
     }
 
-    try {
-      const orders = JSON.parse(localStorage.getItem('chew_orders') || '[]')
-      orders.push({ items: cart, total, method, ts: Date.now() })
-      localStorage.setItem('chew_orders', JSON.stringify(orders))
-      localStorage.removeItem('chew_cart')
-    } catch {}
-    setPaidTotal(money(total)); setPaid(true); setCart({}); window.scrollTo(0, 0)
+    const produtosReq = ids
+      .filter(id => id.startsWith('prod:'))
+      .map(id => {
+        const numericId = parseInt(id.replace('prod:', ''), 10)
+        return {
+          id_produto: numericId,
+          quantidade: cart[id].qty
+        }
+      })
+      .filter(p => !isNaN(p.id_produto))
+
+    if (produtosReq.length === 0) {
+      alert('Nenhum produto válido encontrado no carrinho para compra.')
+      return
+    }
+
+    const payMap = {
+      card: 'Crédito',
+      pix: 'PIX',
+      boleto: 'Dinheiro'
+    }
+
+    const token = localStorage.getItem('chew_token')
+    const headers = {
+      'Content-Type': 'application/json'
+    }
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+
+    const payload = {
+      metodo_pagamento: payMap[method] || 'Crédito',
+      valor_total: total,
+      produtos: produtosReq
+    }
+
+    fetch('/api/vendas', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    })
+      .then(res => {
+        if (!res.ok) {
+          return res.json().then(errData => {
+            throw new Error(errData?.error?.message || errData?.message || 'Falha ao processar a venda no servidor.')
+          })
+        }
+        return res.json()
+      })
+      .then(() => {
+        try {
+          const orders = JSON.parse(localStorage.getItem('chew_orders') || '[]')
+          orders.push({ items: cart, total, method, ts: Date.now() })
+          localStorage.setItem('chew_orders', JSON.stringify(orders))
+          localStorage.removeItem('chew_cart')
+        } catch {}
+        setPaidTotal(money(total)); setPaid(true); setCart({}); window.scrollTo(0, 0)
+      })
+      .catch(err => {
+        alert('Erro ao finalizar compra: ' + err.message)
+      })
   }
 
   const methods = [['card', 'Cartão'], ['pix', 'Pix'], ['boleto', 'Boleto']]

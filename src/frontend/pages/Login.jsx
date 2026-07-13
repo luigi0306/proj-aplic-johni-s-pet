@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+const API = '/api'
+
 const inputStyle = {
   width: '100%', height: 40, border: '1.5px solid #e3daf0', borderRadius: 10,
   background: 'rgba(255,255,255,.95)', padding: '0 36px 0 14px', fontSize: 13.5, color: '#333',
@@ -10,9 +12,8 @@ const labelStyle = { display: 'block', fontSize: 12, fontWeight: 700, color: '#4
 const orangeBtn = {
   width: '100%', height: 44, border: 'none', borderRadius: 10, background: '#FF6600', color: '#fff',
   fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 15, cursor: 'pointer', boxShadow: '0 10px 22px rgba(255,102,0,.28)',
-  letterSpacing: '.3px', boxSizing: 'border-box',
+  letterSpacing: '.3px', boxSizing: 'border-box', transition: 'opacity .2s',
 }
-const socialBtn = { width: 40, height: 40, borderRadius: '50%', border: '1px solid rgba(0,0,0,.06)', background: '#fff', boxShadow: '0 4px 10px rgba(0,0,0,.08)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }
 const eyeBtnStyle = { position: 'absolute', right: 3, top: '50%', transform: 'translateY(-50%)', width: 28, height: 28, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }
 const errorTextStyle = { color: '#c0392b', fontSize: 12, fontWeight: 700, margin: '-8px 0 12px' }
 
@@ -36,6 +37,7 @@ function Login() {
   const [showSB, setShowSB] = useState(false)
   const [loginError, setLoginError] = useState('')
   const [signupError, setSignupError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const loginEmail = useRef(null)
   const loginPassword = useRef(null)
@@ -48,97 +50,84 @@ function Login() {
   const signPassword = useRef(null)
   const signPasswordRepeat = useRef(null)
 
-  function finishAuth(email, isNewAccount) {
-    const name = email && email.includes('@') ? email.split('@')[0] : (email || 'amigo')
+  function finishAuth(token, cliente) {
     try {
       localStorage.setItem('chew_logged_in', '1')
-      localStorage.setItem('chew_user', name)
+      localStorage.setItem('chew_user', cliente.nome ? cliente.nome.split(' ')[0] : (cliente.email || 'amigo'))
+      localStorage.setItem('chew_token', token)
+      localStorage.setItem('chew_cliente', JSON.stringify(cliente))
     } catch { }
-
-    if (isNewAccount) {
-      try { localStorage.removeItem('chew_after_login') } catch { }
-      navigate('/')
-      return
-    }
 
     let redirectTo = '/'
     try {
       const after = localStorage.getItem('chew_after_login')
-      if (after) {
-        redirectTo = after
-        localStorage.removeItem('chew_after_login')
-      }
+      if (after) { redirectTo = after; localStorage.removeItem('chew_after_login') }
     } catch { }
     navigate(redirectTo)
   }
 
-  function handleLogin() {
-    const email = loginEmail.current ? loginEmail.current.value : ''
-    const password = loginPassword.current ? loginPassword.current.value : ''
+  async function handleLogin() {
+    const email = loginEmail.current?.value?.trim() || ''
+    const senha = loginPassword.current?.value || ''
 
-    if (!isValidEmail(email)) {
-      setLoginError('Digite um email válido para entrar.')
-      return
-    }
-    if (!password) {
-      setLoginError('Digite sua senha para entrar.')
-      return
-    }
+    if (!isValidEmail(email)) { setLoginError('Digite um email válido para entrar.'); return }
+    if (!senha) { setLoginError('Digite sua senha para entrar.'); return }
 
     setLoginError('')
-    finishAuth(email, false)
+    setLoading(true)
+    try {
+      const res = await fetch(`${API}/auth/clientes/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, senha }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setLoginError(data.message || 'Email ou senha inválidos.'); return }
+      finishAuth(data.token, data.cliente)
+    } catch {
+      setLoginError('Erro de conexão. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  function handleSignup() {
-    const fullName = signFullName.current ? signFullName.current.value : ''
-    const cpf = signCpf.current ? signCpf.current.value : ''
-    const phone = signPhone.current ? signPhone.current.value : ''
-    const address = signAddress.current ? signAddress.current.value : ''
+  async function handleSignup() {
+    const nome = signFullName.current?.value?.trim() || ''
+    const cpf = signCpf.current?.value?.trim() || ''
+    const telefone = signPhone.current?.value?.trim() || ''
+    const endereco = signAddress.current?.value?.trim() || ''
+    const email = signEmail.current?.value?.trim() || ''
+    const senha = signPassword.current?.value || ''
+    const repeat = signPasswordRepeat.current?.value || ''
 
-    const email = signEmail.current ? signEmail.current.value : ''
-    const password = signPassword.current ? signPassword.current.value : ''
-    const repeat = signPasswordRepeat.current ? signPasswordRepeat.current.value : ''
-
-    if (!fullName.trim()) {
-      setSignupError('Digite seu nome completo.')
-      return
-    }
-
-    if (!cpf.trim()) {
-      setSignupError('Digite seu CPF.')
-      return
-    }
-
-    if (!phone.trim()) {
-      setSignupError('Digite seu telefone.')
-      return
-    }
-
-    if (!address.trim()) {
-      setSignupError('Digite seu endereço.')
-      return
-    }
-
-    if (!isValidEmail(email)) {
-      setSignupError('Digite um email válido para se cadastrar.')
-      return
-    }
-    if (!password || password.length < 6) {
-      setSignupError('A senha precisa ter pelo menos 6 caracteres.')
-      return
-    }
-    if (password !== repeat) {
-      setSignupError('As senhas digitadas não são iguais.')
-      return
-    }
+    if (!nome) { setSignupError('Digite seu nome completo.'); return }
+    if (!cpf || cpf.replace(/\D/g, '').length < 11) { setSignupError('Digite um CPF válido (11 dígitos).'); return }
+    if (!telefone || telefone.replace(/\D/g, '').length < 8) { setSignupError('Digite um telefone válido.'); return }
+    if (!endereco) { setSignupError('Digite seu endereço.'); return }
+    if (!isValidEmail(email)) { setSignupError('Digite um email válido.'); return }
+    if (!senha || senha.length < 6) { setSignupError('A senha precisa ter pelo menos 6 caracteres.'); return }
+    if (senha !== repeat) { setSignupError('As senhas digitadas não são iguais.'); return }
 
     setSignupError('')
-    finishAuth(email, true)
-  }
-
-  function handleSocialLogin(emailRef, isNewAccount) {
-    const email = emailRef.current ? emailRef.current.value : ''
-    finishAuth(email, isNewAccount)
+    setLoading(true)
+    try {
+      const res = await fetch(`${API}/auth/clientes/cadastro`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, cpf, telefone, endereco, email, senha }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        const msg = data.errors?.[0]?.message || data.message || 'Erro no cadastro. Verifique os dados.'
+        setSignupError(msg)
+        return
+      }
+      finishAuth(data.token, data.cliente)
+    } catch {
+      setSignupError('Erro de conexão. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const signup = mode === 'signup'
@@ -152,10 +141,6 @@ function Login() {
   }
   const loginCardStyle = { ...frost, left: 0, zIndex: signup ? 2 : 5, transform: `translate(${signup ? xSignup : xLogin}px, -50%)`, opacity: signup ? 0 : 1, pointerEvents: signup ? 'none' : 'auto' }
   const signupCardStyle = { ...frost, left: 0, zIndex: signup ? 5 : 2, transform: `translate(${signup ? xSignup : xLogin}px, -50%)`, opacity: signup ? 1 : 0, pointerEvents: signup ? 'auto' : 'none' }
-
-  const google = <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.9a5 5 0 0 1-2.2 3.3v2.7h3.5c2-1.9 3.3-4.7 3.3-7.9z" /><path fill="#34A853" d="M12 23c3 0 5.5-1 7.3-2.7l-3.5-2.7c-1 .7-2.3 1.1-3.8 1.1-2.9 0-5.4-2-6.3-4.6H2v2.8A11 11 0 0 0 12 23z" /><path fill="#FBBC05" d="M5.7 14.1a6.6 6.6 0 0 1 0-4.2V7.1H2a11 11 0 0 0 0 9.8z" /><path fill="#EA4335" d="M12 5.4c1.6 0 3 .6 4.2 1.7l3.1-3.1A11 11 0 0 0 2 7.1l3.7 2.8C6.6 7.3 9.1 5.4 12 5.4z" /></svg>
-  const apple = <svg width="17" height="17" viewBox="0 0 24 24" fill="#111"><path d="M17.05 12.04c-.03-2.6 2.13-3.85 2.22-3.91-1.21-1.77-3.1-2.02-3.77-2.04-1.6-.16-3.13.94-3.94.94-.81 0-2.07-.92-3.4-.9-1.75.03-3.36 1.02-4.26 2.58-1.82 3.16-.46 7.84 1.3 10.41.86 1.26 1.89 2.67 3.23 2.62 1.3-.05 1.79-.84 3.36-.84 1.57 0 2.01.84 3.39.81 1.4-.02 2.28-1.28 3.13-2.55.99-1.46 1.4-2.88 1.42-2.95-.03-.01-2.73-1.05-2.76-4.16z" /></svg>
-  const facebook = <svg width="17" height="17" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12a12 12 0 1 0-13.9 11.9v-8.4H7v-3.5h3.1V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9v2.2h3.4l-.5 3.5h-2.9v8.4A12 12 0 0 0 24 12z" /></svg>
 
   return (
     <div style={{ minHeight: '100vh', background: '#E6D7E8', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 30, fontFamily: "'Nunito', sans-serif" }}>
@@ -177,194 +162,68 @@ function Login() {
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(120deg,rgba(199,178,226,.32),rgba(170,135,210,.26))' }}></div>
         </div>
 
+        {/* ── CARD LOGIN ── */}
         <div style={loginCardStyle}>
           <div style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 12.5, color: '#FF6600', marginBottom: 2, letterSpacing: '.4px' }}>CHEW!!</div>
           <h2 style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 34, color: '#111', margin: '0 0 18px' }}>Login</h2>
           <label style={labelStyle}>Email</label>
-          <input ref={loginEmail} type="email" autoComplete="email" placeholder="username@gmail.com" className="chew-auth-input" style={{ ...inputStyle, padding: '0 14px', marginBottom: 13 }} />
+          <input id="login-email" ref={loginEmail} type="email" autoComplete="email" placeholder="username@gmail.com" className="chew-auth-input" style={{ ...inputStyle, padding: '0 14px', marginBottom: 13 }} />
           <label style={labelStyle}>Senha</label>
           <div style={{ position: 'relative', marginBottom: 6 }}>
-            <input ref={loginPassword} type={showLA ? 'text' : 'password'} autoComplete="current-password" placeholder="••••••••" className="chew-auth-input" style={inputStyle} />
+            <input id="login-senha" ref={loginPassword} type={showLA ? 'text' : 'password'} autoComplete="current-password" placeholder="••••••••" className="chew-auth-input" style={inputStyle} />
             <button type="button" onClick={() => setShowLA(!showLA)} style={eyeBtnStyle}><Eye open={showLA} /></button>
           </div>
           <div style={{ textAlign: 'right', marginBottom: 15 }}>
             <a href="#" onClick={(e) => e.preventDefault()} style={{ fontSize: 12, fontWeight: 700, color: '#FF6600', textDecoration: 'none' }}>Esqueceu a senha?</a>
           </div>
           {loginError && <p style={errorTextStyle}>{loginError}</p>}
-          <button onClick={handleLogin} style={orangeBtn}>Entrar</button>
-          <div style={{ textAlign: 'center', fontSize: 12, color: '#6a6078', margin: '14px 0 12px' }}>Ou continue com</div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
-
-          </div>
+          <button id="btn-login" onClick={handleLogin} style={{ ...orangeBtn, opacity: loading ? .65 : 1 }} disabled={loading}>
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
           <div style={{ textAlign: 'center', fontSize: 12, color: '#6a6078', marginTop: 16 }}>Não tem conta? <a onClick={() => { setMode('signup'); setLoginError('') }} style={{ fontWeight: 800, color: '#FF6600', textDecoration: 'none', cursor: 'pointer' }}>Se cadastre de graça</a></div>
         </div>
 
+        {/* ── CARD CADASTRO ── */}
         <div style={signupCardStyle}>
-          <div
-            style={{
-              fontFamily: "'Fredoka', sans-serif",
-              fontWeight: 600,
-              fontSize: 12.5,
-              color: '#FF6600',
-              marginBottom: 2,
-              letterSpacing: '.4px'
-            }}
-          >
-            CHEW!!
-          </div>
+          <div style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 12.5, color: '#FF6600', marginBottom: 2, letterSpacing: '.4px' }}>CHEW!!</div>
+          <h2 style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 30, color: '#111', margin: '0 0 15px' }}>Cadastre-se</h2>
 
-          <h2
-            style={{
-              fontFamily: "'Nunito', sans-serif",
-              fontWeight: 800,
-              fontSize: 30,
-              color: '#111',
-              margin: '0 0 15px'
-            }}
-          >
-            Cadastre-se
-          </h2>
-
-          {/* Nome Completo */}
           <label style={labelStyle}>Nome Completo</label>
-          <input
-            ref={signFullName}
-            type="text"
-            placeholder="Digite seu nome completo"
-            className="chew-auth-input"
-            style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }}
-          />
+          <input id="signup-nome" ref={signFullName} type="text" placeholder="Digite seu nome completo" className="chew-auth-input" style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }} />
 
-          {/* CPF */}
           <label style={labelStyle}>CPF</label>
-          <input
-            ref={signCpf}
-            type="text"
-            placeholder="000.000.000-00"
-            className="chew-auth-input"
-            style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }}
-          />
+          <input id="signup-cpf" ref={signCpf} type="text" placeholder="000.000.000-00" className="chew-auth-input" style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }} />
 
-          {/* Telefone */}
           <label style={labelStyle}>Telefone</label>
-          <input
-            ref={signPhone}
-            type="tel"
-            placeholder="(61) 99999-9999"
-            className="chew-auth-input"
-            style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }}
-          />
+          <input id="signup-telefone" ref={signPhone} type="tel" placeholder="(61) 99999-9999" className="chew-auth-input" style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }} />
 
-          {/* Endereço */}
           <label style={labelStyle}>Endereço</label>
-          <input
-            ref={signAddress}
-            type="text"
-            placeholder="Rua, número, bairro"
-            className="chew-auth-input"
-            style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }}
-          />
+          <input id="signup-endereco" ref={signAddress} type="text" placeholder="Rua, número, bairro" className="chew-auth-input" style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }} />
 
-          {/* Email */}
           <label style={labelStyle}>Email</label>
-          <input
-            ref={signEmail}
-            type="email"
-            autoComplete="email"
-            placeholder="username@gmail.com"
-            className="chew-auth-input"
-            style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }}
-          />
+          <input id="signup-email" ref={signEmail} type="email" autoComplete="email" placeholder="username@gmail.com" className="chew-auth-input" style={{ ...inputStyle, padding: '0 14px', marginBottom: 11 }} />
 
-          {/* Senha */}
           <label style={labelStyle}>Senha</label>
           <div style={{ position: 'relative', marginBottom: 11 }}>
-            <input
-              ref={signPassword}
-              type={showSA ? 'text' : 'password'}
-              autoComplete="new-password"
-              placeholder="••••••••"
-              className="chew-auth-input"
-              style={inputStyle}
-            />
-            <button
-              type="button"
-              onClick={() => setShowSA(!showSA)}
-              style={eyeBtnStyle}
-            >
-              <Eye open={showSA} />
-            </button>
+            <input id="signup-senha" ref={signPassword} type={showSA ? 'text' : 'password'} autoComplete="new-password" placeholder="••••••••" className="chew-auth-input" style={inputStyle} />
+            <button type="button" onClick={() => setShowSA(!showSA)} style={eyeBtnStyle}><Eye open={showSA} /></button>
           </div>
 
-          {/* Repetir Senha */}
           <label style={labelStyle}>Repetir Senha</label>
           <div style={{ position: 'relative', marginBottom: 15 }}>
-            <input
-              ref={signPasswordRepeat}
-              type={showSB ? 'text' : 'password'}
-              autoComplete="new-password"
-              placeholder="••••••••"
-              className="chew-auth-input"
-              style={inputStyle}
-            />
-            <button
-              type="button"
-              onClick={() => setShowSB(!showSB)}
-              style={eyeBtnStyle}
-            >
-              <Eye open={showSB} />
-            </button>
+            <input id="signup-confirmar-senha" ref={signPasswordRepeat} type={showSB ? 'text' : 'password'} autoComplete="new-password" placeholder="••••••••" className="chew-auth-input" style={inputStyle} />
+            <button type="button" onClick={() => setShowSB(!showSB)} style={eyeBtnStyle}><Eye open={showSB} /></button>
           </div>
 
           {signupError && <p style={errorTextStyle}>{signupError}</p>}
 
-          <button onClick={handleSignup} style={orangeBtn}>
-            Criar conta
+          <button id="btn-cadastro" onClick={handleSignup} style={{ ...orangeBtn, opacity: loading ? .65 : 1 }} disabled={loading}>
+            {loading ? 'Criando conta...' : 'Criar conta'}
           </button>
 
-          <div
-            style={{
-              textAlign: 'center',
-              fontSize: 12,
-              color: '#6a6078',
-              margin: '14px 0 12px'
-            }}
-          >
-            Ou continue com
-          </div>
-
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: 12
-            }}
-          >
-          </div>
-
-          <div
-            style={{
-              textAlign: 'center',
-              fontSize: 12,
-              color: '#6a6078',
-              marginTop: 14
-            }}
-          >
+          <div style={{ textAlign: 'center', fontSize: 12, color: '#6a6078', marginTop: 14 }}>
             Já tem conta?{' '}
-            <a
-              onClick={() => {
-                setMode('login')
-                setSignupError('')
-              }}
-              style={{
-                fontWeight: 800,
-                color: '#FF6600',
-                textDecoration: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              Faça Login
-            </a>
+            <a onClick={() => { setMode('login'); setSignupError('') }} style={{ fontWeight: 800, color: '#FF6600', textDecoration: 'none', cursor: 'pointer' }}>Faça Login</a>
           </div>
         </div>
 

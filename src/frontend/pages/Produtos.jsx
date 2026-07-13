@@ -187,6 +187,21 @@ function saveCart(c) { try { localStorage.setItem('chew_cart', JSON.stringify(c)
 function isLogged() { try { return localStorage.getItem('chew_logged_in') === '1' } catch { return false } }
 function doLogout() { try { localStorage.removeItem('chew_logged_in') } catch {} }
 
+const CAT_MAP = {
+  'Cachorro': 'dog',
+  'Gato': 'cat',
+  'Pássaro': 'bird',
+  'Hamster': 'hamster'
+}
+
+const SEC_MAP = {
+  'Alimentação': 'food',
+  'Banho': 'bath',
+  'Brinquedos': 'toy',
+  'Acessórios': 'acc',
+  'Roupinhas': 'roupa'
+}
+
 function Produtos() {
   const navigate = useNavigate()
   const [cat, setCat] = useState('dog')
@@ -199,6 +214,33 @@ function Produtos() {
   const [busca, setBusca] = useState('')
   const [resultadosBackend, setResultadosBackend] = useState(null)
   const [buscandoBackend, setBuscandoBackend] = useState(false)
+  const [catalog, setCatalog] = useState(() => CATALOG)
+
+  useEffect(() => {
+    fetch(API_BASE + '/produtos')
+      .then(res => {
+        if (!res.ok) throw new Error('Falha ao carregar produtos')
+        return res.json()
+      })
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped = data.map(p => ({
+            id: p.id_produto,
+            cat: CAT_MAP[p.especie] || 'dog',
+            sec: SEC_MAP[p.secao] || 'food',
+            kind: p.categoria || '',
+            name: p.nome,
+            price: parseFloat(p.preco),
+            img: p.imagem_url,
+            estoque: p.estoque_atual
+          }))
+          setCatalog(mapped)
+        }
+      })
+      .catch(err => {
+        console.error('Erro ao carregar produtos do backend:', err)
+      })
+  }, [])
 
   useEffect(function () {
     const termo = busca.trim()
@@ -240,7 +282,7 @@ function Produtos() {
     if (!isLogged()) { navigate('/login'); return }
     const id = 'prod:' + p.id
     const c = loadCart()
-    const e = c[id] || { name: p.name, price: p.price, img: p.img, color: (CATS[p.cat] && CATS[p.cat].color) || '#E8530E', qty: 0 }
+    const e = c[id] || { id: p.id, name: p.name, price: p.price, img: p.img, color: (CATS[p.cat] && CATS[p.cat].color) || '#E8530E', qty: 0 }
     e.qty++; c[id] = e
     saveCart(c); setCart({ ...c }); setCartOpen(true)
   }
@@ -257,15 +299,24 @@ function Produtos() {
 
   const resultadosBusca = buscando
     ? (resultadosBackend !== null
-        ? resultadosBackend
-        : CATALOG.filter(function (p) {
+        ? resultadosBackend.map(p => ({
+            id: p.id_produto,
+            cat: CAT_MAP[p.especie] || 'dog',
+            sec: SEC_MAP[p.secao] || 'food',
+            kind: p.categoria || '',
+            name: p.nome,
+            price: parseFloat(p.preco),
+            img: p.imagem_url,
+            estoque: p.estoque_atual
+          }))
+        : catalog.filter(function (p) {
             const alvo = normalizarTexto(p.name + ' ' + p.kind)
             return alvo.includes(normalizarTexto(termoBusca))
           }))
     : []
 
   const sections = SEC_ORDER
-    .map((s) => ({ key: s, ...SEC[s], items: CATALOG.filter((p) => p.cat === cat && p.sec === s) }))
+    .map((s) => ({ key: s, ...SEC[s], items: catalog.filter((p) => p.cat === cat && p.sec === s) }))
     .filter((s) => s.items.length > 0)
 
   function ProdutoCard({ p, delay }) {
