@@ -14,20 +14,40 @@ export default function LoginFuncionario() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [cargo, setCargo] = useState("Atendente");
   const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-
-    // TODO: substituir por chamada real ao backend (FastAPI) quando
-    // a autenticação de funcionário estiver pronta.
-    localStorage.setItem("chew_funcionario_logado", "true");
-    localStorage.setItem("chew_funcionario_cargo", cargo);
-    localStorage.setItem("chew_funcionario_email", email);
-
     setErro("");
-    navigate(CARGOS_COM_ACESSO[cargo] || "/funcionario/prontuario");
+    setCarregando(true);
+
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/funcionarios/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, senha }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error?.message || data.error || "Email ou senha inválidos.");
+      }
+
+      const { token, funcionario } = await response.json();
+
+      localStorage.setItem("chew_funcionario_token", token);
+      localStorage.setItem("chew_funcionario_logado", "true");
+      localStorage.setItem("chew_funcionario_cargo", funcionario.cargo);
+      localStorage.setItem("chew_funcionario_email", funcionario.email);
+      localStorage.setItem("chew_funcionario_nome", funcionario.nome);
+
+      navigate(CARGOS_COM_ACESSO[funcionario.cargo] || "/funcionario/prontuario");
+    } catch (err) {
+      setErro(err.message);
+    } finally {
+      setCarregando(false);
+    }
   }
 
   return (
@@ -84,19 +104,9 @@ export default function LoginFuncionario() {
             required
           />
 
-          <label className="chew-login-field-label">Cargo</label>
-          <select
-            className="chew-login-input"
-            value={cargo}
-            onChange={(e) => setCargo(e.target.value)}
-          >
-            <option>Atendente</option>
-            <option>Veterinario</option>
-            <option>Limpeza</option>
-            <option>Gerente</option>
-          </select>
+
           <p className="chew-login-hint">
-           
+
           </p>
 
           {erro && <div className="chew-login-alert">{erro}</div>}

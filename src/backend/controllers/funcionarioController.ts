@@ -4,7 +4,12 @@ import { AppError } from '../errors/AppError';
 
 export const listarFuncionarios = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { rows } = await db.query('SELECT * FROM funcionario ORDER BY id_funcionario DESC');
+    const { rows } = await db.query(
+      `SELECT f.*, uf.email 
+       FROM funcionario f 
+       LEFT JOIN usuario_funcionario uf ON f.id_funcionario = uf.id_funcionario 
+       ORDER BY f.id_funcionario DESC`
+    );
     res.json(rows);
   } catch (error) {
     next(error);

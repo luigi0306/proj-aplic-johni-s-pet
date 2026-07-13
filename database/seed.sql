@@ -1,285 +1,761 @@
--- ============================================================
---  PET SHOP – DML (INSERT / UPDATE / DELETE)
---  Compatível com o DDL fornecido (PostgreSQL)
---  Ordem respeitando dependências de chave estrangeira
--- ============================================================
+-- =====================================================================
+-- SEED / POVOAMENTO — BANCO PET SHOP (CHEW!!)
+-- Compatível com schema_completo_v3.sql (tabelas cliente, pet, produto,
+-- animal_adocao). Gerado a partir do catálogo de produtos fornecido e dos
+-- clientes/pets sintéticos gerados para atingir o volume mínimo pedido:
+-- 80 clientes, 105 pets, 103 produtos,
+-- 9 animais para adoção.
+--
+-- ATENÇÃO: a tabela pet/animal_adocao deste schema NÃO tem coluna "especie"
+-- (só produto tem). A espécie de cada pet/animal fica só implícita no campo
+-- "raca". Se quiserem filtrar pets por espécie no front, considerem migrar
+-- uma coluna especie_pet para essas duas tabelas também.
+-- =====================================================================
 
--- ────────────────────────────────────────────────────────────
---  1. CLIENTES
--- ────────────────────────────────────────────────────────────
-INSERT INTO cliente (cpf, nome, telefone, endereco) VALUES
-  ('123.456.789-00', 'Ana Beatriz Souza',    '(61) 99101-2233', 'Rua das Flores, 45 – Asa Norte, Brasília'),
-  ('234.567.890-11', 'Carlos Eduardo Lima',  '(61) 98202-3344', 'Av. W3 Norte, 112 – Asa Norte, Brasília'),
-  ('345.678.901-22', 'Fernanda Costa',       '(61) 97303-4455', 'Quadra 204, Bl. B, Apt 301 – Águas Claras'),
-  ('456.789.012-33', 'Roberto Alves',        '(61) 96404-5566', 'Rua do Ipê, 78 – Taguatinga Sul'),
-  ('567.890.123-44', 'Juliana Martins',      '(61) 95505-6677', 'Rua 10, Lote 22 – Ceilândia Norte'),
-  ('678.901.234-55', 'Marcos Henrique Dias', '(61) 94606-7788', 'QI 17, Lote 9 – Guará II'),
-  ('789.012.345-66', 'Patricia Ferreira',    '(61) 93707-8899', 'SMPW Quadra 26, Lote 3 – Park Way'),
-  ('890.123.456-77', 'Thiago Barbosa',       '(61) 92808-9900', 'Rua Ipanema, 55 – Samambaia Norte');
+-- ============ CLIENTES ============
+INSERT INTO cliente (nome, cpf, telefone, endereco) VALUES
+    ('Samuel Santos', '125.859.381-41', '(21) 93286-2679', 'Rua Rio Branco, 90 — Gama'),
+    ('Elisa Silva', '195.323.338-74', '(71) 91434-4257', 'Rua Rio Branco, 430 — Águas Claras'),
+    ('Leticia Nunes', '384.928.990-10', '(11) 97924-6574', 'Quadra 7, 160 — Águas Claras'),
+    ('Valentina Santos', '194.489.199-55', '(41) 95333-1711', 'Av. Independência, 550 — Taguatinga'),
+    ('Caio Oliveira', '665.400.949-90', '(71) 96925-4150', 'Rua do Bosque, 47 — Águas Claras'),
+    ('Otavio Oliveira', '975.338.987-22', '(51) 95554-8428', 'Rua da Paz, 167 — Sobradinho'),
+    ('Ximena Alves', '786.373.818-97', '(62) 93803-9751', 'Rua dos Ipês, 168 — Samambaia'),
+    ('Caio Almeida', '755.804.670-38', '(41) 91916-4752', 'Av. Central, 825 — Sobradinho'),
+    ('Flavia Almeida', '167.316.680-50', '(21) 99179-7482', 'Av. Independência, 147 — Guará'),
+    ('Rafael Rodrigues', '862.674.651-43', '(71) 98019-7543', 'Rua da Paz, 225 — Ceilândia'),
+    ('Vanessa Carvalho', '193.873.148-24', '(11) 93621-7916', 'Rua Minas Gerais, 66 — Gama'),
+    ('Caio Correia', '579.641.357-80', '(61) 92876-9797', 'Quadra 7, 788 — Sobradinho'),
+    ('Olivia Costa', '545.261.564-10', '(31) 99201-3927', 'Quadra 21, 935 — Taguatinga'),
+    ('Roberta Costa', '961.754.619-87', '(21) 93504-7126', 'Rua das Palmeiras, 553 — Brasília'),
+    ('Leonardo Gomes', '600.119.214-56', '(31) 94923-1949', 'Rua dos Ipês, 900 — Taguatinga'),
+    ('Karina Rocha', '597.935.170-78', '(11) 93103-8787', 'Rua Rio Branco, 170 — Guará'),
+    ('Bianca Cavalcanti', '721.533.316-79', '(21) 96107-7537', 'Rua da Paz, 449 — Samambaia'),
+    ('Pedro Rodrigues', '330.165.446-12', '(71) 94770-4608', 'Rua das Flores, 73 — Brasília'),
+    ('Gustavo Oliveira', '132.980.438-19', '(85) 94899-5562', 'Rua das Acácias, 220 — Ceilândia'),
+    ('Ingrid Nunes', '584.348.903-70', '(51) 94119-2545', 'Quadra 12, 675 — Gama'),
+    ('Ximena Barbosa', '520.578.984-16', '(62) 91993-7596', 'Av. das Nações, 820 — Taguatinga'),
+    ('Igor Alves', '294.649.559-27', '(51) 94006-5563', 'Av. Independência, 256 — Taguatinga'),
+    ('Kaique Castro', '982.976.663-22', '(61) 99856-1241', 'Rua do Bosque, 949 — Águas Claras'),
+    ('Vinicius Barbosa', '597.592.318-61', '(61) 93697-7209', 'Rua das Flores, 400 — Guará'),
+    ('Mauricio Costa', '533.813.848-81', '(81) 93536-4111', 'Rua Sete de Setembro, 223 — Brasília'),
+    ('Jorge Rocha', '655.162.865-50', '(61) 91821-8811', 'Quadra 21, 942 — Ceilândia'),
+    ('Henrique Lima', '182.971.290-18', '(71) 92113-4853', 'Quadra 3 Conjunto B, 123 — Águas Claras'),
+    ('Jorge Correia', '140.734.183-63', '(71) 99565-6183', 'Quadra 7, 210 — Sobradinho'),
+    ('Helena Almeida', '505.234.787-92', '(31) 98491-6180', 'Rua do Bosque, 10 — Samambaia'),
+    ('Paula Nunes', '202.175.650-37', '(85) 95345-3170', 'Rua da Paz, 903 — Taguatinga'),
+    ('Igor Martins', '391.261.548-79', '(31) 99666-1128', 'Rua Rio Branco, 307 — Taguatinga'),
+    ('Rafael Almeida', '218.209.860-80', '(11) 95462-5616', 'Rua Minas Gerais, 216 — Sobradinho'),
+    ('Daniel Fernandes', '749.973.370-74', '(81) 95114-1832', 'Rua do Bosque, 650 — Gama'),
+    ('Marcelo Souza', '103.441.889-26', '(31) 93647-8239', 'Rua Rio Branco, 723 — Gama'),
+    ('Fernanda Silva', '214.177.807-29', '(85) 91590-7049', 'Av. Paulista, 566 — Ceilândia'),
+    ('Jaqueline Pereira', '142.415.473-15', '(41) 94441-5088', 'Quadra 12, 363 — Gama'),
+    ('Paula Rocha', '258.342.985-30', '(11) 97755-1406', 'Rua das Palmeiras, 755 — Sobradinho'),
+    ('Gilberto Castro', '785.984.852-41', '(31) 93608-2771', 'Quadra 3 Conjunto B, 894 — Brasília'),
+    ('Osvaldo Rodrigues', '304.936.571-54', '(31) 94728-4652', 'Rua das Flores, 676 — Águas Claras'),
+    ('Flavia Gomes', '385.985.171-45', '(41) 99346-7548', 'Rua Rio Branco, 340 — Brasília'),
+    ('Olivia Freitas', '367.282.694-43', '(61) 92776-8119', 'Rua da Paz, 747 — Sobradinho'),
+    ('Jaqueline Correia', '623.218.494-83', '(21) 95173-1727', 'Rua São Paulo, 2 — Águas Claras'),
+    ('Yago Barbosa', '171.780.438-89', '(41) 93041-5920', 'Quadra 21, 317 — Gama'),
+    ('Tatiane Araujo', '813.402.667-26', '(21) 97888-7211', 'Rua das Palmeiras, 631 — Guará'),
+    ('Flavia Mendes', '953.100.411-46', '(21) 98043-6279', 'Av. Independência, 453 — Samambaia'),
+    ('Eduarda Lima', '584.912.915-31', '(62) 95649-9445', 'Rua Minas Gerais, 344 — Taguatinga'),
+    ('Helena Fernandes', '417.330.925-35', '(11) 91400-1757', 'Rua dos Ipês, 487 — Taguatinga'),
+    ('Mauricio Barbosa', '744.689.299-99', '(51) 99099-7547', 'Rua dos Ipês, 152 — Brasília'),
+    ('Nicolas Dias', '535.324.280-99', '(85) 98611-1822', 'Rua Rio Branco, 256 — Taguatinga'),
+    ('Mauricio Pereira', '920.575.783-77', '(85) 96198-8251', 'Rua Minas Gerais, 835 — Gama'),
+    ('Everton Ribeiro', '262.861.982-70', '(81) 95246-5050', 'Quadra 7, 785 — Samambaia'),
+    ('Roberta Rodrigues', '381.550.179-46', '(21) 95451-6502', 'Av. das Nações, 915 — Taguatinga'),
+    ('Rafael Pereira', '336.492.810-29', '(21) 92052-7797', 'Rua São Paulo, 339 — Samambaia'),
+    ('Heloisa Souza', '311.952.530-59', '(71) 91320-7232', 'Rua das Acácias, 7 — Sobradinho'),
+    ('Patricia Dias', '499.973.955-63', '(85) 99947-4613', 'Rua das Acácias, 225 — Guará'),
+    ('Jaqueline Carvalho', '129.498.444-95', '(51) 93704-8657', 'Rua Nova, 638 — Brasília'),
+    ('Ernesto Nunes', '677.778.127-20', '(51) 93223-8564', 'Rua das Palmeiras, 52 — Guará'),
+    ('Caio Gomes', '316.565.434-53', '(51) 95558-7906', 'Quadra 7, 855 — Taguatinga'),
+    ('Osvaldo Silva', '867.652.153-54', '(21) 92124-1659', 'Rua das Flores, 973 — Águas Claras'),
+    ('Camila Campos', '120.736.256-40', '(11) 98758-2874', 'Av. Paulista, 971 — Águas Claras'),
+    ('Nadia Cardoso', '362.885.477-31', '(71) 92876-3683', 'Rua Sete de Setembro, 111 — Brasília'),
+    ('Rodrigo Nunes', '793.484.506-35', '(62) 94978-2669', 'Rua Sete de Setembro, 871 — Taguatinga'),
+    ('Guilherme Castro', '142.455.645-64', '(41) 92129-9289', 'Av. das Nações, 13 — Gama'),
+    ('Renato Santos', '543.470.750-68', '(11) 98135-3885', 'Quadra 21, 989 — Guará'),
+    ('Nelson Castro', '651.893.595-69', '(51) 95397-6280', 'Rua dos Ipês, 851 — Taguatinga'),
+    ('Marcelo Freitas', '561.349.868-69', '(71) 97209-6511', 'Rua das Flores, 507 — Sobradinho'),
+    ('Yasmin Carvalho', '317.463.916-43', '(41) 95581-5526', 'Rua Rio Branco, 11 — Águas Claras'),
+    ('Karina Rodrigues', '837.516.600-81', '(21) 98800-9041', 'Av. Independência, 812 — Brasília'),
+    ('Lucas Costa', '326.514.808-41', '(31) 97046-8753', 'Rua Rio Branco, 544 — Sobradinho'),
+    ('Ivan Rocha', '663.438.460-99', '(81) 95438-6023', 'Quadra 7, 237 — Taguatinga'),
+    ('Zeca Gomes', '222.860.648-98', '(11) 94138-4545', 'Rua das Acácias, 284 — Guará'),
+    ('Mariana Campos', '298.403.332-56', '(11) 95952-1231', 'Rua Rio Branco, 130 — Guará'),
+    ('Fabio Souza', '666.399.814-26', '(81) 92680-1200', 'Av. Paulista, 292 — Samambaia'),
+    ('Priscila Ribeiro', '448.288.152-42', '(81) 92869-2070', 'Quadra 3 Conjunto B, 504 — Taguatinga'),
+    ('Ingrid Teixeira', '802.154.255-29', '(71) 95978-2395', 'Rua dos Ipês, 122 — Gama'),
+    ('Monica Correia', '909.733.331-76', '(51) 98381-8253', 'Rua Sete de Setembro, 881 — Gama'),
+    ('Rodrigo Nunes', '735.161.724-22', '(21) 94457-5335', 'Rua do Bosque, 161 — Águas Claras'),
+    ('Wesley Mendes', '176.260.102-62', '(81) 98699-5771', 'Av. Central, 238 — Guará'),
+    ('Natalia Cardoso', '980.564.172-97', '(21) 95334-4241', 'Rua São Paulo, 118 — Águas Claras'),
+    ('Viviane Pereira', '372.946.245-19', '(61) 93718-6039', 'Rua Minas Gerais, 767 — Guará');
 
--- ────────────────────────────────────────────────────────────
---  2. FUNCIONÁRIOS
--- ────────────────────────────────────────────────────────────
-INSERT INTO funcionario (cpf, nome, cargo, salario) VALUES
-  ('001.002.003-01', 'Luciana Pimentel',   'Gerente',      4800.00),
-  ('002.003.004-02', 'Diego Rocha',        'Groomer',      2800.00),
-  ('003.004.005-03', 'Sabrina Nunes',      'Groomer',      2800.00),
-  ('004.005.006-04', 'Fábio Teixeira',     'Atendente',    2000.00),
-  ('005.006.007-05', 'Renata Oliveira',    'Atendente',    2000.00),
-  ('006.007.008-06', 'Igor Santos',        'Estoquista',   1900.00),
-  ('007.008.009-07', 'Camila Araújo',      'Limpeza',      1600.00),
-  ('008.009.010-08', 'Bruno Carvalho',     'Groomer',      2800.00);
-
--- ────────────────────────────────────────────────────────────
---  3. PETS (vinculados a clientes)
--- ────────────────────────────────────────────────────────────
+-- ============ PETS DOS CLIENTES ============
+-- Usa subquery pelo cpf (único) para achar o id_cliente, evitando depender de ID fixo.
 INSERT INTO pet (nome, raca, porte, faixa_etaria, hist_medico, id_cliente) VALUES
-  ('Thor',    'Golden Retriever', 'Grande',  'Adulto',  'Vacinado, castrado',           1),
-  ('Luna',    'Poodle',           'Pequeno', 'Filhote', 'Vacinada, saudável',           1),
-  ('Rex',     'Labrador',         'Grande',  'Idoso',   'Artrite leve, anti-pulgas',    2),
-  ('Mel',     'Shih Tzu',         'Pequeno', 'Adulto',  'Vacinada, castrada',           3),
-  ('Buddy',   'Beagle',           'Médio',   'Filhote', 'Primeira vacina aplicada',     4),
-  ('Nina',    'Yorkshire',        'Pequeno', 'Adulto',  'Vacinada, histórico limpo',    5),
-  ('Max',     'Bulldog Francês',  'Médio',   'Adulto',  'Alergia alimentar registrada', 6),
-  ('Bella',   'Border Collie',    'Médio',   'Filhote', 'Vacinada, vermifugada',        7),
-  ('Tobias',  'Gato SRD',         'Pequeno', 'Adulto',  'Castrado, vacinado',           8),
-  ('Lola',    'Spitz Alemão',     'Pequeno', 'Filhote', 'Saudável',                    2);
+    ('Amora', 'Yorkshire', 'Grande', 'Adulto', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '677.778.127-20')),
+    ('Thor', 'Roborovski', 'Pequeno', 'Filhote', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '214.177.807-29')),
+    ('Mel', 'Calopsita', 'Pequeno', 'Jovem', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '623.218.494-83')),
+    ('Bartô', 'Chihuahua', 'Grande', 'Adulto', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '909.733.331-76')),
+    ('Fred', 'Bengal', 'Médio', 'Adulto', 'Consulta de rotina, peso estável.', (SELECT id_cliente FROM cliente WHERE cpf = '975.338.987-22')),
+    ('Nina', 'Roborovski', 'Pequeno', 'Idoso', 'Em tratamento para otite.', (SELECT id_cliente FROM cliente WHERE cpf = '802.154.255-29')),
+    ('Tico', 'Canário-belga', 'Pequeno', 'Jovem', 'Em tratamento para otite.', (SELECT id_cliente FROM cliente WHERE cpf = '336.492.810-29')),
+    ('Pipoca', 'Chinês', 'Pequeno', 'Filhote', 'Histórico de displasia coxofemoral.', (SELECT id_cliente FROM cliente WHERE cpf = '336.492.810-29')),
+    ('Café', 'Canário-belga', 'Pequeno', 'Filhote', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '579.641.357-80')),
+    ('Pingado', 'Border Collie', 'Grande', 'Idoso', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '561.349.868-69')),
+    ('Kiko', 'Angorá', 'Médio', 'Idoso', 'Vacinação em dia, sem alergias conhecidas.', (SELECT id_cliente FROM cliente WHERE cpf = '786.373.818-97')),
+    ('Chico', 'Cacatua', 'Pequeno', 'Adulto', 'Histórico de displasia coxofemoral.', (SELECT id_cliente FROM cliente WHERE cpf = '182.971.290-18')),
+    ('Luna', 'Labrador', 'Grande', 'Jovem', 'Consulta de rotina, peso estável.', (SELECT id_cliente FROM cliente WHERE cpf = '142.455.645-64')),
+    ('Max', 'Pinscher', 'Médio', 'Filhote', 'Vermifugação recente.', (SELECT id_cliente FROM cliente WHERE cpf = '385.985.171-45')),
+    ('Bela', 'Sírio Dourado', 'Pequeno', 'Idoso', 'Vacinado, sem histórico de doenças.', (SELECT id_cliente FROM cliente WHERE cpf = '600.119.214-56')),
+    ('Simba', 'Agapornis', 'Pequeno', 'Idoso', 'Vermifugação recente.', (SELECT id_cliente FROM cliente WHERE cpf = '561.349.868-69')),
+    ('Nala', 'Sphynx', 'Pequeno', 'Jovem', 'Castrado, alergia a frango.', (SELECT id_cliente FROM cliente WHERE cpf = '867.652.153-54')),
+    ('Bidu', 'Chinês', 'Pequeno', 'Filhote', 'Vacinado, sem histórico de doenças.', (SELECT id_cliente FROM cliente WHERE cpf = '142.415.473-15')),
+    ('Frajola', 'Anão Russo', 'Pequeno', 'Idoso', 'Em tratamento para otite.', (SELECT id_cliente FROM cliente WHERE cpf = '304.936.571-54')),
+    ('Toby', 'Roborovski', 'Pequeno', 'Jovem', 'Vermifugação recente.', (SELECT id_cliente FROM cliente WHERE cpf = '171.780.438-89')),
+    ('Lola', 'Anão Russo', 'Pequeno', 'Filhote', 'Em tratamento para otite.', (SELECT id_cliente FROM cliente WHERE cpf = '448.288.152-42')),
+    ('Duque', 'Roborovski', 'Pequeno', 'Idoso', 'Vacinação em dia, sem alergias conhecidas.', (SELECT id_cliente FROM cliente WHERE cpf = '362.885.477-31')),
+    ('Mia', 'Papagaio Verdadeiro', 'Pequeno', 'Idoso', 'Castrado, alergia a frango.', (SELECT id_cliente FROM cliente WHERE cpf = '721.533.316-79')),
+    ('Zeus', 'Sírio Dourado', 'Pequeno', 'Idoso', 'Consulta de rotina, peso estável.', (SELECT id_cliente FROM cliente WHERE cpf = '837.516.600-81')),
+    ('Apolo', 'Chinês', 'Pequeno', 'Idoso', 'Castrado, alergia a frango.', (SELECT id_cliente FROM cliente WHERE cpf = '862.674.651-43')),
+    ('Bento', 'Chinês', 'Pequeno', 'Filhote', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '171.780.438-89')),
+    ('Cacau', 'Ragdoll', 'Pequeno', 'Filhote', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '167.316.680-50')),
+    ('Docinho', 'Yorkshire', 'Pequeno', 'Adulto', 'Vacinação em dia, sem alergias conhecidas.', (SELECT id_cliente FROM cliente WHERE cpf = '545.261.564-10')),
+    ('Estrela', 'Papagaio Verdadeiro', 'Pequeno', 'Adulto', 'Em tratamento para otite.', (SELECT id_cliente FROM cliente WHERE cpf = '975.338.987-22')),
+    ('Faísca', 'Anão Russo', 'Pequeno', 'Idoso', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '744.689.299-99')),
+    ('Gato Preto', 'Siamês', 'Pequeno', 'Idoso', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '597.592.318-61')),
+    ('Homer', 'Anão Russo', 'Pequeno', 'Idoso', 'Vacinado, sem histórico de doenças.', (SELECT id_cliente FROM cliente WHERE cpf = '391.261.548-79')),
+    ('Íris', 'Curió', 'Pequeno', 'Idoso', 'Vacinado, sem histórico de doenças.', (SELECT id_cliente FROM cliente WHERE cpf = '867.652.153-54')),
+    ('Jujuba', 'Persa', 'Médio', 'Adulto', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '663.438.460-99')),
+    ('Kira', 'Chinês', 'Pequeno', 'Adulto', 'Vermifugação recente.', (SELECT id_cliente FROM cliente WHERE cpf = '304.936.571-54')),
+    ('Leão', 'Sírio Dourado', 'Pequeno', 'Idoso', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '920.575.783-77')),
+    ('Marley', 'Curió', 'Pequeno', 'Filhote', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '584.912.915-31')),
+    ('Nino', 'Beagle', 'Grande', 'Filhote', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '142.415.473-15')),
+    ('Oreo', 'Papagaio Verdadeiro', 'Pequeno', 'Adulto', 'Vermifugação recente.', (SELECT id_cliente FROM cliente WHERE cpf = '543.470.750-68')),
+    ('Pandora', 'Curió', 'Pequeno', 'Filhote', 'Vacinação em dia, sem alergias conhecidas.', (SELECT id_cliente FROM cliente WHERE cpf = '533.813.848-81')),
+    ('Quindim', 'Sírio Dourado', 'Pequeno', 'Jovem', 'Castrado, alergia a frango.', (SELECT id_cliente FROM cliente WHERE cpf = '385.985.171-45')),
+    ('Rex', 'Curió', 'Pequeno', 'Jovem', 'Vermifugação recente.', (SELECT id_cliente FROM cliente WHERE cpf = '785.984.852-41')),
+    ('Sansão', 'Cacatua', 'Pequeno', 'Jovem', 'Vacinado, sem histórico de doenças.', (SELECT id_cliente FROM cliente WHERE cpf = '721.533.316-79')),
+    ('Tequila', 'Curió', 'Pequeno', 'Filhote', 'Histórico de displasia coxofemoral.', (SELECT id_cliente FROM cliente WHERE cpf = '793.484.506-35')),
+    ('Uva', 'Maine Coon', 'Médio', 'Adulto', 'Castrado, alergia a frango.', (SELECT id_cliente FROM cliente WHERE cpf = '862.674.651-43')),
+    ('Valentim', 'Golden Retriever', 'Grande', 'Filhote', 'Histórico de displasia coxofemoral.', (SELECT id_cliente FROM cliente WHERE cpf = '262.861.982-70')),
+    ('Whisky', 'Cacatua', 'Pequeno', 'Adulto', 'Castrado, alergia a frango.', (SELECT id_cliente FROM cliente WHERE cpf = '744.689.299-99')),
+    ('Xerife', 'Sírio Dourado', 'Pequeno', 'Jovem', 'Castrado, alergia a frango.', (SELECT id_cliente FROM cliente WHERE cpf = '202.175.650-37')),
+    ('Yoshi', 'Curió', 'Pequeno', 'Filhote', 'Consulta de rotina, peso estável.', (SELECT id_cliente FROM cliente WHERE cpf = '120.736.256-40')),
+    ('Zoe', 'Golden Retriever', 'Médio', 'Filhote', 'Castrado, alergia a frango.', (SELECT id_cliente FROM cliente WHERE cpf = '975.338.987-22')),
+    ('Bolt', 'Sphynx', 'Médio', 'Adulto', 'Nenhuma observação médica relevante.', (SELECT id_cliente FROM cliente WHERE cpf = '391.261.548-79')),
+    ('Cookie', 'Sphynx', 'Pequeno', 'Idoso', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '311.952.530-59')),
+    ('Dominic', 'Calopsita', 'Pequeno', 'Jovem', 'Histórico de displasia coxofemoral.', (SELECT id_cliente FROM cliente WHERE cpf = '336.492.810-29')),
+    ('Ellie', 'Angorá', 'Pequeno', 'Adulto', 'Nenhuma observação médica relevante.', (SELECT id_cliente FROM cliente WHERE cpf = '677.778.127-20')),
+    ('Filó', 'Pastor Alemão', 'Médio', 'Jovem', 'Castrado, alergia a frango.', (SELECT id_cliente FROM cliente WHERE cpf = '584.912.915-31')),
+    ('Gaia', 'Border Collie', 'Pequeno', 'Filhote', 'Vacinação em dia, sem alergias conhecidas.', (SELECT id_cliente FROM cliente WHERE cpf = '867.652.153-54')),
+    ('Hulk', 'Siamês', 'Pequeno', 'Filhote', 'Nenhuma observação médica relevante.', (SELECT id_cliente FROM cliente WHERE cpf = '171.780.438-89')),
+    ('Ivy', 'Maine Coon', 'Médio', 'Jovem', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '182.971.290-18')),
+    ('Jade', 'Papagaio Verdadeiro', 'Pequeno', 'Jovem', 'Nenhuma observação médica relevante.', (SELECT id_cliente FROM cliente WHERE cpf = '125.859.381-41')),
+    ('Kai', 'Persa', 'Pequeno', 'Jovem', 'Vacinação em dia, sem alergias conhecidas.', (SELECT id_cliente FROM cliente WHERE cpf = '749.973.370-74')),
+    ('Lily', 'Angorá', 'Pequeno', 'Jovem', 'Vacinado, sem histórico de doenças.', (SELECT id_cliente FROM cliente WHERE cpf = '584.912.915-31')),
+    ('Mimi', 'Sphynx', 'Pequeno', 'Filhote', 'Histórico de displasia coxofemoral.', (SELECT id_cliente FROM cliente WHERE cpf = '786.373.818-97')),
+    ('Nicky', 'Cacatua', 'Pequeno', 'Idoso', 'Nenhuma observação médica relevante.', (SELECT id_cliente FROM cliente WHERE cpf = '316.565.434-53')),
+    ('Olívia Pet', 'Dachshund', 'Grande', 'Adulto', 'Histórico de displasia coxofemoral.', (SELECT id_cliente FROM cliente WHERE cpf = '505.234.787-92')),
+    ('Piu-piu', 'Yorkshire', 'Médio', 'Idoso', 'Castrado, alergia a frango.', (SELECT id_cliente FROM cliente WHERE cpf = '194.489.199-55')),
+    ('Rita', 'Sírio Dourado', 'Pequeno', 'Adulto', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '142.455.645-64')),
+    ('Salsicha', 'Poodle', 'Médio', 'Adulto', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '132.980.438-19')),
+    ('Trufa', 'Agapornis', 'Pequeno', 'Filhote', 'Castrado, alergia a frango.', (SELECT id_cliente FROM cliente WHERE cpf = '735.161.724-22')),
+    ('Ursula Pet', 'Sphynx', 'Médio', 'Jovem', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '222.860.648-98')),
+    ('Vitória Pet', 'Roborovski', 'Pequeno', 'Filhote', 'Em tratamento para otite.', (SELECT id_cliente FROM cliente WHERE cpf = '813.402.667-26')),
+    ('Xuxa Pet', 'Curió', 'Pequeno', 'Adulto', 'Consulta de rotina, peso estável.', (SELECT id_cliente FROM cliente WHERE cpf = '499.973.955-63')),
+    ('Yara Pet', 'SRD', 'Pequeno', 'Filhote', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '362.885.477-31')),
+    ('Zezé', 'Papagaio Verdadeiro', 'Pequeno', 'Filhote', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '545.261.564-10')),
+    ('Amora', 'Curió', 'Pequeno', 'Idoso', 'Em tratamento para otite.', (SELECT id_cliente FROM cliente WHERE cpf = '298.403.332-56')),
+    ('Thor', 'Golden Retriever', 'Grande', 'Adulto', 'Em tratamento para otite.', (SELECT id_cliente FROM cliente WHERE cpf = '499.973.955-63')),
+    ('Mel', 'Siamês', 'Médio', 'Jovem', 'Castrado, alergia a frango.', (SELECT id_cliente FROM cliente WHERE cpf = '961.754.619-87')),
+    ('Bartô', 'Calopsita', 'Pequeno', 'Jovem', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '953.100.411-46')),
+    ('Fred', 'Beagle', 'Grande', 'Adulto', 'Vacinação em dia, sem alergias conhecidas.', (SELECT id_cliente FROM cliente WHERE cpf = '298.403.332-56')),
+    ('Nina', 'Curió', 'Pequeno', 'Adulto', 'Em tratamento para otite.', (SELECT id_cliente FROM cliente WHERE cpf = '597.592.318-61')),
+    ('Tico', 'Siamês', 'Médio', 'Filhote', 'Consulta de rotina, peso estável.', (SELECT id_cliente FROM cliente WHERE cpf = '125.859.381-41')),
+    ('Pipoca', 'Dachshund', 'Grande', 'Jovem', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '194.489.199-55')),
+    ('Café', 'Chinês', 'Pequeno', 'Adulto', 'Vacinado, sem histórico de doenças.', (SELECT id_cliente FROM cliente WHERE cpf = '311.952.530-59')),
+    ('Pingado', 'Husky Siberiano', 'Pequeno', 'Jovem', 'Consulta de rotina, peso estável.', (SELECT id_cliente FROM cliente WHERE cpf = '623.218.494-83')),
+    ('Kiko', 'Border Collie', 'Pequeno', 'Adulto', 'Histórico de displasia coxofemoral.', (SELECT id_cliente FROM cliente WHERE cpf = '372.946.245-19')),
+    ('Chico', 'Roborovski', 'Pequeno', 'Adulto', 'Vermifugação recente.', (SELECT id_cliente FROM cliente WHERE cpf = '499.973.955-63')),
+    ('Luna', 'Shih Tzu', 'Médio', 'Filhote', 'Vacinado, sem histórico de doenças.', (SELECT id_cliente FROM cliente WHERE cpf = '561.349.868-69')),
+    ('Max', 'Chinês', 'Pequeno', 'Jovem', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '909.733.331-76')),
+    ('Bela', 'Labrador', 'Pequeno', 'Adulto', 'Vermifugação recente.', (SELECT id_cliente FROM cliente WHERE cpf = '735.161.724-22')),
+    ('Simba', 'Canário-belga', 'Pequeno', 'Filhote', 'Vacinação em dia, sem alergias conhecidas.', (SELECT id_cliente FROM cliente WHERE cpf = '330.165.446-12')),
+    ('Nala', 'Anão Russo', 'Pequeno', 'Idoso', 'Nenhuma observação médica relevante.', (SELECT id_cliente FROM cliente WHERE cpf = '543.470.750-68')),
+    ('Bidu', 'Calopsita', 'Pequeno', 'Filhote', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '202.175.650-37')),
+    ('Frajola', 'Sírio Dourado', 'Pequeno', 'Idoso', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '384.928.990-10')),
+    ('Toby', 'Chinês', 'Pequeno', 'Idoso', 'Vacinação em dia, sem alergias conhecidas.', (SELECT id_cliente FROM cliente WHERE cpf = '381.550.179-46')),
+    ('Lola', 'Bengal', 'Médio', 'Filhote', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '623.218.494-83')),
+    ('Duque', 'Sphynx', 'Médio', 'Filhote', 'Reação alérgica a determinados shampoos.', (SELECT id_cliente FROM cliente WHERE cpf = '961.754.619-87')),
+    ('Mia', 'Periquito Australiano', 'Pequeno', 'Jovem', 'Castrado, alergia a frango.', (SELECT id_cliente FROM cliente WHERE cpf = '385.985.171-45')),
+    ('Zeus', 'Pinscher', 'Grande', 'Jovem', 'Em tratamento para otite.', (SELECT id_cliente FROM cliente WHERE cpf = '561.349.868-69')),
+    ('Apolo', 'Maine Coon', 'Pequeno', 'Jovem', 'Vacinado, sem histórico de doenças.', (SELECT id_cliente FROM cliente WHERE cpf = '953.100.411-46')),
+    ('Bento', 'Siamês', 'Pequeno', 'Jovem', 'Histórico de displasia coxofemoral.', (SELECT id_cliente FROM cliente WHERE cpf = '655.162.865-50')),
+    ('Cacau', 'Chinês', 'Pequeno', 'Jovem', 'Histórico de displasia coxofemoral.', (SELECT id_cliente FROM cliente WHERE cpf = '120.736.256-40')),
+    ('Docinho', 'Roborovski', 'Pequeno', 'Adulto', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '167.316.680-50')),
+    ('Estrela', 'Cacatua', 'Pequeno', 'Adulto', 'Histórico de displasia coxofemoral.', (SELECT id_cliente FROM cliente WHERE cpf = '755.804.670-38')),
+    ('Faísca', 'Labrador', 'Médio', 'Adulto', 'Castrado, alergia a frango.', (SELECT id_cliente FROM cliente WHERE cpf = '316.565.434-53')),
+    ('Gato Preto', 'Roborovski', 'Pequeno', 'Idoso', 'Vacina antirrábica aplicada este ano.', (SELECT id_cliente FROM cliente WHERE cpf = '579.641.357-80')),
+    ('Homer', 'Cacatua', 'Pequeno', 'Jovem', 'Vacinação em dia, sem alergias conhecidas.', (SELECT id_cliente FROM cliente WHERE cpf = '533.813.848-81'));
 
--- ────────────────────────────────────────────────────────────
---  4. ANIMAIS PARA ADOÇÃO
--- ────────────────────────────────────────────────────────────
-INSERT INTO animal_adocao (nome, raca, porte, faixa_etaria, hist_medico, data_resgate, status, id_cliente_adotante) VALUES
-  ('Pipoca',  'SRD',           'Pequeno', 'Filhote', 'Resgatada de rua, vacinada',      '2026-03-10', 'Disponível',    NULL),
-  ('Bruto',   'Vira-lata',     'Grande',  'Adulto',  'Castrado, tratamento de sarna',   '2026-01-22', 'Em Tratamento', NULL),
-  ('Mimi',    'Gato SRD',      'Pequeno', 'Idoso',   'Vacinada, FIV negativo',          '2025-11-05', 'Adotado',       3),
-  ('Farofa',  'Vira-lata',     'Médio',   'Filhote', 'Vacinado, saudável',              '2026-04-01', 'Disponível',    NULL),
-  ('Cinza',   'Gato Persa SRD','Pequeno', 'Adulto',  'Castrado, vacinado',              '2026-02-14', 'Disponível',    NULL);
+-- ============ ANIMAIS PARA ADOÇÃO ============
+INSERT INTO animal_adocao (nome, raca, porte, faixa_etaria, hist_medico, status, imagem_url) VALUES
+    ('Amora', 'Gata', 'Pequeno', 'Adulto', 'Carinhosa, adora um colo quentinho e soneca ao sol.', 'Disponível', '/imagens/amoradoc.jpg'),
+    ('Bartô', 'Gato', 'Pequeno', 'Jovem', 'Curioso e brincalhão, vive explorando cada cantinho.', 'Disponível', '/imagens/bartoadoc.jpg'),
+    ('Mel', 'Gata', 'Pequeno', 'Filhote', 'Doce e tranquila, perfeita pra quem ama paz.', 'Disponível', '/imagens/meladoc.jpg'),
+    ('Thor', 'Cão', 'Médio', 'Adulto', 'Companheiro fiel, ama passeios e bolinhas.', 'Disponível', '/imagens/thoradoc.jpg'),
+    ('Nina & Tico', 'Pássaros', 'Pequeno', 'Jovem', 'A dupla mais fofa, sempre juntinhos e dóceis.', 'Disponível', '/imagens/ninaetico.jpg'),
+    ('Pipoca', 'Roedor', 'Pequeno', 'Filhote', 'Pequenina e cheia de energia, um docinho.', 'Disponível', '/imagens/pipoca.jpg'),
+    ('Café e Pingado', 'Cão', 'Médio', 'Adulto', 'Irmãos, muito fofinhos e brincalhões.', 'Disponível', '/imagens/cafe.jpg'),
+    ('Kiko', 'Pássaros', 'Pequeno', 'Adulto', 'Calminho e fascinante, pra tutores especiais.', 'Disponível', '/imagens/chicoadoc.jpg'),
+    ('Chico', 'Exótico', 'Pequeno', 'Adulto', 'Calminho e carinhoso, pra tutores especiais.', 'Disponível', '/imagens/chico.jpg');
 
--- ────────────────────────────────────────────────────────────
---  5. SERVIÇOS
--- ────────────────────────────────────────────────────────────
-INSERT INTO servico (nome, preco_base) VALUES
-  ('Banho Simples',           35.00),
-  ('Banho e Tosa',            70.00),
-  ('Tosa Higiênica',          45.00),
-  ('Consulta Veterinária',   120.00),
-  ('Vacina Antirrábica',      80.00),
-  ('Aplicação Anti-pulgas',   50.00),
-  ('Hidratação de Pelagem',   55.00),
-  ('Corte de Unhas',          20.00);
+-- ============ PRODUTOS ============
+INSERT INTO produto (nome, preco, categoria, estoque_atual, especie, secao, imagem_url) VALUES
+    ('Ração Pedigree Adulto 10kg', 89.90, 'Ração', 72, 'Cachorro', 'Alimentação', '/imagens/ração.jpg'),
+    ('Ração Golden Fórmula Cães', 129.90, 'Ração', 28, 'Cachorro', 'Alimentação', '/imagens/rac2.jpg'),
+    ('Ração Premier Raças Pequenas', 114.90, 'Ração', 58, 'Cachorro', 'Alimentação', '/imagens/rac4.jpg'),
+    ('Ração GranPlus Filhotes', 98.90, 'Ração', 25, 'Cachorro', 'Alimentação', '/imagens/rac5.jpg'),
+    ('Ração Special Senior 10kg', 104.90, 'Ração', 79, 'Cachorro', 'Alimentação', '/imagens/rac6.jpg'),
+    ('Petisco Doguitos Carne', 12.90, 'Petisco', 37, 'Cachorro', 'Alimentação', '/imagens/petiscach.jpg'),
+    ('Petisco Sticks de Frango', 13.90, 'Petisco', 20, 'Cachorro', 'Alimentação', '/imagens/petisccach2.jpg'),
+    ('Petisco Bifinho Tradicional', 11.90, 'Petisco', 46, 'Cachorro', 'Alimentação', '/imagens/petisccach3.jpg'),
+    ('Shampoo Neutro Sanol', 24.90, 'Higiene', 71, 'Cachorro', 'Banho', '/imagens/shampocac1.jpg'),
+    ('Condicionador Pelo Brilhante', 27.90, 'Higiene', 71, 'Cachorro', 'Banho', '/imagens/shampocac2.jpg'),
+    ('Perfume Pet Floral', 19.90, 'Higiene', 35, 'Cachorro', 'Banho', '/imagens/shampocac3.jpg'),
+    ('Shampoo Antipulgas', 29.90, 'Higiene', 61, 'Cachorro', 'Banho', '/imagens/shampocac4.jpg'),
+    ('Bolinha Maciça', 14.90, 'Brinquedo', 62, 'Cachorro', 'Brinquedos', '/imagens/brinque6.jpg'),
+    ('Osso de Nylon', 22.90, 'Brinquedo', 51, 'Cachorro', 'Brinquedos', '/imagens/brinque7.jpg'),
+    ('Mordedor de Corda', 18.90, 'Brinquedo', 64, 'Cachorro', 'Brinquedos', '/imagens/brinque8.jpg'),
+    ('Frisbee de Borracha', 26.90, 'Brinquedo', 67, 'Cachorro', 'Brinquedos', '/imagens/brinque22.jpg'),
+    ('Pelúcia com Apito', 21.90, 'Brinquedo', 58, 'Cachorro', 'Brinquedos', '/imagens/brinque23.jpg'),
+    ('Kong Recheável', 44.90, 'Brinquedo', 21, 'Cachorro', 'Brinquedos', NULL),
+    ('Disco Voador', 19.90, 'Brinquedo', 57, 'Cachorro', 'Brinquedos', NULL),
+    ('Pato de Vinil', 16.90, 'Brinquedo', 23, 'Cachorro', 'Brinquedos', NULL),
+    ('Bola com Guizo', 15.90, 'Brinquedo', 57, 'Cachorro', 'Brinquedos', NULL),
+    ('Puxador Dental', 23.90, 'Brinquedo', 27, 'Cachorro', 'Brinquedos', NULL),
+    ('Coleira Peitoral + Guia', 54.90, 'Acessório', 64, 'Cachorro', 'Acessórios', '/imagens/coleircach1.jpg'),
+    ('Coleira Ajustável Nylon', 24.90, 'Acessório', 51, 'Cachorro', 'Acessórios', '/imagens/coleircach2.jpg'),
+    ('Guia Retrátil 5m', 44.90, 'Acessório', 47, 'Cachorro', 'Acessórios', '/imagens/coleircach3.jpg'),
+    ('Coleira com Placa de Identificação', 19.90, 'Acessório', 34, 'Cachorro', 'Acessórios', '/imagens/coleicach4.jpg'),
+    ('Cama Fofa Redonda', 119.90, 'Acessório', 57, 'Cachorro', 'Acessórios', NULL),
+    ('Comedouro Duplo Inox', 49.90, 'Acessório', 25, 'Cachorro', 'Acessórios', NULL),
+    ('Roupinha de Frio Xadrez', 39.90, 'Roupinha', 59, 'Cachorro', 'Roupinhas', '/imagens/roupadog1.jpg'),
+    ('Moletom Canino Cinza', 44.90, 'Roupinha', 54, 'Cachorro', 'Roupinhas', '/imagens/roupadog2.jpg'),
+    ('Capa de Chuva Impermeável', 49.90, 'Roupinha', 65, 'Cachorro', 'Roupinhas', '/imagens/roupadog3.jpg'),
+    ('Vestido Pet com Laço', 42.90, 'Roupinha', 31, 'Cachorro', 'Roupinhas', '/imagens/roupadog4.jpg'),
+    ('Suéter Listrado Quentinho', 38.90, 'Roupinha', 25, 'Cachorro', 'Roupinhas', '/imagens/roupadog5.jpg'),
+    ('Ração Whiskas Sabor Peixe', 74.90, 'Ração', 54, 'Gato', 'Alimentação', '/imagens/racgat1.jpg'),
+    ('Ração Golden Special Gatos', 69.90, 'Ração', 63, 'Gato', 'Alimentação', '/imagens/racgato2.jpg'),
+    ('Ração Premier Gatos Castrados', 99.90, 'Ração', 57, 'Gato', 'Alimentação', '/imagens/racgato3.jpg'),
+    ('Ração GranPlus Gatos', 64.90, 'Ração', 31, 'Gato', 'Alimentação', '/imagens/racgato4.jpg'),
+    ('Ração Fancy Feast Filhotes', 79.90, 'Ração', 26, 'Gato', 'Alimentação', '/imagens/racgato5.jpg'),
+    ('Ração Special Gatos Idosos', 84.90, 'Ração', 69, 'Gato', 'Alimentação', '/imagens/racgato6.jpg'),
+    ('Petisco Whiskas Saúde', 9.90, 'Petisco', 80, 'Gato', 'Alimentação', '/imagens/petiscgat1.jpg'),
+    ('Petisco Cream Malte', 10.90, 'Petisco', 61, 'Gato', 'Alimentação', '/imagens/petiscgat2.jpg'),
+    ('Petisco Snacks de Salmão', 11.90, 'Petisco', 17, 'Gato', 'Alimentação', '/imagens/petiscgat3.jpg'),
+    ('Shampoo Sanol Gatos', 26.90, 'Higiene', 61, 'Gato', 'Banho', '/imagens/shampogat1.jpg'),
+    ('Lenços Umedecidos Pet', 15.90, 'Higiene', 54, 'Gato', 'Banho', '/imagens/shampogat2.jpg'),
+    ('Perfume Felino', 18.90, 'Higiene', 38, 'Gato', 'Banho', '/imagens/shampogat3.jpg'),
+    ('Shampoo Antipulgas Gatos', 28.90, 'Higiene', 42, 'Gato', 'Banho', '/imagens/shampogat4.jpg'),
+    ('Ratinho de Pelúcia', 11.90, 'Brinquedo', 58, 'Gato', 'Brinquedos', '/imagens/brinque24.jpg'),
+    ('Varinha com Penas', 16.90, 'Brinquedo', 77, 'Gato', 'Brinquedos', '/imagens/brinque25.jpg'),
+    ('Bolinha com Guizo', 9.90, 'Brinquedo', 39, 'Gato', 'Brinquedos', '/imagens/brinque26.jpg'),
+    ('Coleira Laser Interativa', 39.90, 'Brinquedo', 43, 'Gato', 'Brinquedos', '/imagens/brinqgat1.jpg'),
+    ('Túnel Dobrável', 34.90, 'Brinquedo', 32, 'Gato', 'Brinquedos', '/imagens/brinquegat2.jpg'),
+    ('Peixe com Catnip', 18.90, 'Brinquedo', 34, 'Gato', 'Brinquedos', '/imagens/brinquegat3.jpg'),
+    ('Mola Colorida', 8.90, 'Brinquedo', 24, 'Gato', 'Brinquedos', '/imagens/brinquegat4.jpg'),
+    ('Almofada de Catnip', 19.90, 'Brinquedo', 52, 'Gato', 'Brinquedos', NULL),
+    ('Bola de Sisal', 12.90, 'Brinquedo', 27, 'Gato', 'Brinquedos', NULL),
+    ('Circuito com Bolinha', 45.90, 'Brinquedo', 79, 'Gato', 'Brinquedos', NULL),
+    ('Coleira com Guizo', 14.90, 'Acessório', 19, 'Gato', 'Acessórios', '/imagens/coleigat1.jpg'),
+    ('Coleira Ajustável Gato', 17.90, 'Acessório', 58, 'Gato', 'Acessórios', '/imagens/coleigat2.jpg'),
+    ('Guia para Gatos', 29.90, 'Acessório', 31, 'Gato', 'Acessórios', '/imagens/coleigat3.jpg'),
+    ('Coleira com Sininho', 13.90, 'Acessório', 63, 'Gato', 'Acessórios', '/imagens/coleigat4.jpg'),
+    ('Arranhador Torre', 149.90, 'Acessório', 34, 'Gato', 'Acessórios', NULL),
+    ('Caixa de Areia com Bordas', 59.90, 'Acessório', 35, 'Gato', 'Acessórios', NULL),
+    ('Comedouro de Cerâmica', 34.90, 'Acessório', 38, 'Gato', 'Acessórios', NULL),
+    ('Cama Iglu Fechada', 89.90, 'Acessório', 36, 'Gato', 'Acessórios', NULL),
+    ('Moletom Felino', 34.90, 'Roupinha', 71, 'Gato', 'Roupinhas', '/imagens/roupagat1.jpg'),
+    ('Vestido para Gatos', 32.90, 'Roupinha', 20, 'Gato', 'Roupinhas', '/imagens/roupagat2.jpg'),
+    ('Suéter Gatinho', 29.90, 'Roupinha', 67, 'Gato', 'Roupinhas', '/imagens/roupagat3.jpg'),
+    ('Capa de Chuva Felina', 36.90, 'Roupinha', 61, 'Gato', 'Roupinhas', '/imagens/roupagat4.jpg'),
+    ('Roupinha de Frio Gato', 33.90, 'Roupinha', 45, 'Gato', 'Roupinhas', '/imagens/roupagat5.jpg'),
+    ('Mix de Sementes Premium', 18.90, 'Sementes', 71, 'Pássaro', 'Alimentação', '/imagens/racpass1.jpg'),
+    ('Ração Farinhada Trinca-Ferro', 24.90, 'Ração', 51, 'Pássaro', 'Alimentação', '/imagens/racpass2.jpg'),
+    ('Papa de Ovos', 21.90, 'Alimento', 72, 'Pássaro', 'Alimentação', NULL),
+    ('Alpiste Selecionado', 14.90, 'Sementes', 44, 'Pássaro', 'Alimentação', NULL),
+    ('Frutas Desidratadas', 16.90, 'Petisco', 45, 'Pássaro', 'Alimentação', '/imagens/petispass.jpg'),
+    ('Banheira para Pássaros', 16.90, 'Higiene', 54, 'Pássaro', 'Banho', '/imagens/acessopass1.jpg'),
+    ('Poleiro Natural de Madeira', 22.90, 'Acessório', 75, 'Pássaro', 'Acessórios', '/imagens/acessopass2.jpg'),
+    ('Comedouro de Bico', 12.90, 'Acessório', 39, 'Pássaro', 'Acessórios', '/imagens/acesspass2.jpg'),
+    ('Gaiola Redonda', 179.90, 'Acessório', 62, 'Pássaro', 'Acessórios', '/imagens/casinhapas1.jpg'),
+    ('Ninho de Fibra', 19.90, 'Acessório', 71, 'Pássaro', 'Acessórios', '/imagens/casinhapas2.jpg'),
+    ('Casinha de Madeira para Pássaros', 64.90, 'Acessório', 74, 'Pássaro', 'Acessórios', '/imagens/casinhapas3.jpg'),
+    ('Ninho Redondo de Palha', 24.90, 'Acessório', 51, 'Pássaro', 'Acessórios', '/imagens/casinhapas4.jpg'),
+    ('Casa Aviário Decorativa', 149.90, 'Acessório', 63, 'Pássaro', 'Acessórios', '/imagens/casinhapas5.jpg'),
+    ('Ração Hamster Completa', 19.90, 'Ração', 79, 'Hamster', 'Alimentação', '/imagens/rachams.jpg'),
+    ('Mix de Grãos e Sementes', 16.90, 'Sementes', 68, 'Hamster', 'Alimentação', '/imagens/rachams2.jpg'),
+    ('Blocos de Feno', 12.90, 'Alimento', 35, 'Hamster', 'Alimentação', '/imagens/rachams3.jpg'),
+    ('Ração Premium Hamster', 22.90, 'Ração', 40, 'Hamster', 'Alimentação', '/imagens/rachams4.jpg'),
+    ('Petisco de Frutas', 9.90, 'Petisco', 32, 'Hamster', 'Alimentação', '/imagens/petiscroed1.jpg'),
+    ('Snack Crocante', 8.90, 'Petisco', 47, 'Hamster', 'Alimentação', '/imagens/petisroedo2.jpg'),
+    ('Shampoo Seco para Hamster', 17.90, 'Higiene', 21, 'Hamster', 'Banho', '/imagens/shampohams.webp'),
+    ('Perfume Roedor', 14.90, 'Higiene', 76, 'Hamster', 'Banho', '/imagens/shamphams2.webp'),
+    ('Roda de Exercícios', 29.90, 'Brinquedo', 62, 'Hamster', 'Brinquedos', '/imagens/brinque1.jpg'),
+    ('Bola Passeadora', 24.90, 'Brinquedo', 28, 'Hamster', 'Brinquedos', '/imagens/brinque2.jpg'),
+    ('Túnel Colorido', 22.90, 'Brinquedo', 30, 'Hamster', 'Brinquedos', '/imagens/brinque3.jpg'),
+    ('Ponte de Madeira', 18.90, 'Brinquedo', 51, 'Hamster', 'Brinquedos', '/imagens/brinque4.jpg'),
+    ('Escada Roedora', 15.90, 'Brinquedo', 25, 'Hamster', 'Brinquedos', '/imagens/brinque5.jpg'),
+    ('Casinha de Madeira', 34.90, 'Acessório', 35, 'Hamster', 'Acessórios', NULL),
+    ('Bebedouro Gota', 14.90, 'Acessório', 49, 'Hamster', 'Acessórios', NULL),
+    ('Rodinha Silenciosa', 27.90, 'Acessório', 72, 'Hamster', 'Acessórios', NULL),
+    ('Roupinha de Frio Hamster', 16.90, 'Roupinha', 80, 'Hamster', 'Roupinhas', '/imagens/roupahams1.jpg'),
+    ('Fantasia de Coelhinho', 18.90, 'Roupinha', 33, 'Hamster', 'Roupinhas', '/imagens/roupahams2.jpg'),
+    ('Suéter Mini', 15.90, 'Roupinha', 70, 'Hamster', 'Roupinhas', '/imagens/roupahams3.jpg'),
+    ('Capa Impermeável Mini', 17.90, 'Roupinha', 26, 'Hamster', 'Roupinhas', '/imagens/roupahams4.jpg');
 
--- ────────────────────────────────────────────────────────────
---  6. AGENDAMENTOS
--- ────────────────────────────────────────────────────────────
+-- ============ FUNCIONÁRIOS ============
+INSERT INTO funcionario (nome, cpf, cargo, salario) VALUES
+    ('Mariana Souza Vieira', '327.936.561-54', 'Gerente', 4800.00),
+    ('João Pedro Lima', '127.524.154-60', 'Atendente', 2300.00),
+    ('Carla Dias Ferreira', '614.482.341-59', 'Atendente', 2250.00),
+    ('Bruno Castro Andrade', '183.483.329-13', 'Atendente', 2280.00),
+    ('Renata Melo Barbosa', '426.201.959-93', 'Estoquista', 2100.00),
+    ('Felipe Nogueira Rocha', '443.910.249-27', 'Estoquista', 2050.00),
+    ('Aline Cristina Santos', '139.393.949-70', 'Limpeza', 1900.00),
+    ('Marcos Vinicius Alves', '812.951.242-70', 'Limpeza', 1850.00),
+    ('Patrícia Gomes Teixeira', '559.730.105-20', 'Groomer', 2400.00),
+    ('Dr. Rodrigo Azevedo Prado', '119.362.320-29', 'Veterinario', 6200.00);
+
+-- ============ LOGIN DE FUNCIONÁRIO ============
+-- Só cargos Gerente, Atendente, Veterinario e Limpeza recebem login, conforme
+-- a trigger trg_valida_cargo_login. Senha de demonstração para todos: 'chew123'
+-- (já em hash bcrypt real, gerado neste script — não é texto puro).
+INSERT INTO usuario_funcionario (id_funcionario, email, senha_hash) VALUES
+    ((SELECT id_funcionario FROM funcionario WHERE cpf = '327.936.561-54'), 'mariana.gerente@chew.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_funcionario FROM funcionario WHERE cpf = '127.524.154-60'), 'joao.atendente@chew.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_funcionario FROM funcionario WHERE cpf = '614.482.341-59'), 'carla.atendente@chew.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_funcionario FROM funcionario WHERE cpf = '183.483.329-13'), 'bruno.atendente@chew.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_funcionario FROM funcionario WHERE cpf = '139.393.949-70'), 'aline.limpeza@chew.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_funcionario FROM funcionario WHERE cpf = '812.951.242-70'), 'marcos.limpeza@chew.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_funcionario FROM funcionario WHERE cpf = '119.362.320-29'), 'dr..veterinario@chew.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS');
+
+-- ============ LOGIN DE CLIENTE ============
+-- Nem todo cliente tem conta no site; aqui geramos login para uma parte deles.
+-- Senha de demonstração para todos: 'chew123' (hash bcrypt real).
+INSERT INTO usuario (id_cliente, email, senha_hash) VALUES
+    ((SELECT id_cliente FROM cliente WHERE cpf = '222.860.648-98'), 'zeca.gomes@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '176.260.102-62'), 'wesley.mendes@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '837.516.600-81'), 'karina.rodrigues@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '499.973.955-63'), 'patricia.dias@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '600.119.214-56'), 'leonardo.gomes@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '258.342.985-30'), 'paula.rocha@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '391.261.548-79'), 'igor.martins@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '304.936.571-54'), 'osvaldo.rodrigues@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '597.935.170-78'), 'karina.rocha@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '786.373.818-97'), 'ximena.alves@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '448.288.152-42'), 'priscila.ribeiro@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '311.952.530-59'), 'heloisa.souza@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '867.652.153-54'), 'osvaldo.silva@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '167.316.680-50'), 'flavia.almeida@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '909.733.331-76'), 'monica.correia@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '543.470.750-68'), 'renato.santos@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '384.928.990-10'), 'leticia.nunes@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '367.282.694-43'), 'olivia.freitas@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '749.973.370-74'), 'daniel.fernandes@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '802.154.255-29'), 'ingrid.teixeira@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '298.403.332-56'), 'mariana.campos@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '584.912.915-31'), 'eduarda.lima@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '862.674.651-43'), 'rafael.rodrigues@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '132.980.438-19'), 'gustavo.oliveira@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '140.734.183-63'), 'jorge.correia@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '125.859.381-41'), 'samuel.santos@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '385.985.171-45'), 'flavia.gomes@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '982.976.663-22'), 'kaique.castro@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '120.736.256-40'), 'camila.campos@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS'),
+    ((SELECT id_cliente FROM cliente WHERE cpf = '362.885.477-31'), 'nadia.cardoso@email.com', '$2b$10$VsImuhADzkN49x.CxqzVE.UOanmjt4DkD0nhWmbgTakNNYHMGv9DS');
+
+-- ============ SERVIÇOS ============
+INSERT INTO servico (nome, preco_base, descricao, imagem_url) VALUES
+    ('Banho e Tosa Completa', 79.90, 'Banho com produtos hipoalergênicos, secagem e tosa higiênica ou na tesoura, conforme o porte e o pelo do pet.', NULL),
+    ('Tosa Higiênica', 39.90, 'Aparação das regiões íntimas, patinhas e rosto, recomendada entre um banho completo e outro.', NULL),
+    ('Consulta Veterinária', 130.00, 'Avaliação clínica geral realizada por médico-veterinário, com anamnese completa.', NULL),
+    ('Vacinação V10', 95.00, 'Aplicação da vacina múltipla que protege contra as principais doenças infecciosas caninas.', NULL),
+    ('Vacinação Antirrábica', 65.00, 'Aplicação da vacina obrigatória contra a raiva.', NULL),
+    ('Vermifugação', 45.00, 'Administração de vermífugo adequado ao peso e à idade do animal.', NULL),
+    ('Aplicação de Microchip', 110.00, 'Implantação de microchip de identificação subcutâneo, com registro no sistema.', NULL),
+    ('Hidratação de Pelagem', 59.90, 'Tratamento com máscara hidratante para pelos ressecados ou opacos.', NULL),
+    ('Corte de Unhas', 24.90, 'Corte e lixamento das unhas, evitando desconforto ao caminhar.', NULL),
+    ('Banho Terapêutico Antipulgas', 69.90, 'Banho com produto específico para eliminação de pulgas e carrapatos.', NULL);
+
+-- ============ BENEFÍCIOS DOS SERVIÇOS ============
+INSERT INTO servico_beneficio (id_servico, ordem, beneficio) VALUES
+    ((SELECT id_servico FROM servico WHERE nome = 'Banho e Tosa Completa'), 1, 'Shampoo e condicionador específicos para o tipo de pele'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Banho e Tosa Completa'), 2, 'Secagem com ar quente controlado'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Banho e Tosa Completa'), 3, 'Escovação e desembaraço'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Banho e Tosa Completa'), 4, 'Corte de unhas incluso'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Tosa Higiênica'), 1, 'Ideal para manutenção quinzenal'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Tosa Higiênica'), 2, 'Reduz acúmulo de sujeira e odor'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Consulta Veterinária'), 1, 'Exame físico completo'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Consulta Veterinária'), 2, 'Orientação nutricional'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Consulta Veterinária'), 3, 'Emissão de receita quando necessário'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Vacinação V10'), 1, 'Aplicação por profissional habilitado'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Vacinação V10'), 2, 'Atualização da carteira de vacinação'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Vacinação Antirrábica'), 1, 'Validade de 12 meses'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Vacinação Antirrábica'), 2, 'Atualização da carteira de vacinação'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Vermifugação'), 1, 'Combate os principais parasitas intestinais'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Vermifugação'), 2, 'Recomendado a cada 6 meses'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Aplicação de Microchip'), 1, 'Identificação permanente e indolor'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Aplicação de Microchip'), 2, 'Registro em banco de dados nacional'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Hidratação de Pelagem'), 1, 'Recupera o brilho natural do pelo'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Hidratação de Pelagem'), 2, 'Reduz a queda e o embaraço'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Corte de Unhas'), 1, 'Procedimento rápido, sem necessidade de agendamento longo'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Banho Terapêutico Antipulgas'), 1, 'Produto de ação prolongada'),
+    ((SELECT id_servico FROM servico WHERE nome = 'Banho Terapêutico Antipulgas'), 2, 'Recomendado em casos de infestação');
+
+-- ============ AGENDAMENTOS ============
+-- Pressupõe tabela agendamento vazia antes deste INSERT (ids nascem 1..N em sequência).
 INSERT INTO agendamento (id_pet, id_funcionario, data_agendamento, hora, status, valor_total) VALUES
-  (1,  2, '2026-06-24', '09:00', 'Confirmado',  70.00),   -- Thor – Diego
-  (2,  3, '2026-06-24', '10:00', 'Agendado',    35.00),   -- Luna – Sabrina
-  (3,  2, '2026-06-25', '14:00', 'Confirmado', 120.00),   -- Rex  – Diego
-  (4,  8, '2026-06-25', '11:00', 'Confirmado',  70.00),   -- Mel  – Bruno
-  (5,  3, '2026-06-26', '09:30', 'Agendado',    55.00),   -- Buddy – Sabrina
-  (6,  2, '2026-06-10', '08:00', 'Concluído',   90.00),   -- Nina – Diego
-  (7,  8, '2026-06-10', '13:00', 'Concluído',   70.00),   -- Max  – Bruno
-  (8,  3, '2026-06-11', '15:00', 'Cancelado',   35.00),   -- Bella – Sabrina (cancelado)
-  (9,  2, '2026-06-23', '10:30', 'Confirmado',  20.00),   -- Tobias – Diego
-  (10, 8, '2026-06-27', '09:00', 'Agendado',    70.00);   -- Lola – Bruno
+    ((SELECT id_pet FROM pet WHERE nome = 'Ellie' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '677.778.127-20') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '614.482.341-59'), CURRENT_DATE + -20, '16:00:00', 'Cancelado', 87.12),
+    ((SELECT id_pet FROM pet WHERE nome = 'Lily' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '584.912.915-31') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '127.524.154-60'), CURRENT_DATE + 15, '08:30:00', 'Agendado', 43.89),
+    ((SELECT id_pet FROM pet WHERE nome = 'Uva' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '862.674.651-43') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '614.482.341-59'), CURRENT_DATE + 15, '13:00:00', 'Agendado', 71.54),
+    ((SELECT id_pet FROM pet WHERE nome = 'Valentim' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '262.861.982-70') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '119.362.320-29'), CURRENT_DATE + -4, '10:00:00', 'Agendado', 196.02),
+    ((SELECT id_pet FROM pet WHERE nome = 'Frajola' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '384.928.990-10') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '559.730.105-20'), CURRENT_DATE + -23, '11:00:00', 'Concluído', 90.67),
+    ((SELECT id_pet FROM pet WHERE nome = 'Pandora' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '533.813.848-81') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '119.362.320-29'), CURRENT_DATE + 0, '12:30:00', 'Agendado', 123.07),
+    ((SELECT id_pet FROM pet WHERE nome = 'Kiko' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '372.946.245-19') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '183.483.329-13'), CURRENT_DATE + -8, '14:30:00', 'Cancelado', 44.72),
+    ((SELECT id_pet FROM pet WHERE nome = 'Tequila' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '793.484.506-35') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '614.482.341-59'), CURRENT_DATE + 6, '09:30:00', 'Agendado', 107.53),
+    ((SELECT id_pet FROM pet WHERE nome = 'Gaia' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '867.652.153-54') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '119.362.320-29'), CURRENT_DATE + -14, '12:30:00', 'Cancelado', 106.65),
+    ((SELECT id_pet FROM pet WHERE nome = 'Fred' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '298.403.332-56') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '559.730.105-20'), CURRENT_DATE + -15, '13:30:00', 'Concluído', 105.60),
+    ((SELECT id_pet FROM pet WHERE nome = 'Café' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '311.952.530-59') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '127.524.154-60'), CURRENT_DATE + -21, '10:00:00', 'Confirmado', 156.26),
+    ((SELECT id_pet FROM pet WHERE nome = 'Fred' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '298.403.332-56') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '559.730.105-20'), CURRENT_DATE + -23, '13:30:00', 'Cancelado', 38.85),
+    ((SELECT id_pet FROM pet WHERE nome = 'Zezé' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '545.261.564-10') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '127.524.154-60'), CURRENT_DATE + 13, '13:30:00', 'Agendado', 62.59),
+    ((SELECT id_pet FROM pet WHERE nome = 'Amora' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '298.403.332-56') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '614.482.341-59'), CURRENT_DATE + 8, '12:00:00', 'Agendado', 107.96),
+    ((SELECT id_pet FROM pet WHERE nome = 'Bartô' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '909.733.331-76') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '614.482.341-59'), CURRENT_DATE + 6, '15:00:00', 'Concluído', 131.38),
+    ((SELECT id_pet FROM pet WHERE nome = 'Simba' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '330.165.446-12') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '559.730.105-20'), CURRENT_DATE + -13, '15:00:00', 'Cancelado', 134.59),
+    ((SELECT id_pet FROM pet WHERE nome = 'Chico' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '182.971.290-18') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '183.483.329-13'), CURRENT_DATE + -3, '10:00:00', 'Concluído', 65.94),
+    ((SELECT id_pet FROM pet WHERE nome = 'Rita' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '142.455.645-64') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '614.482.341-59'), CURRENT_DATE + -18, '15:00:00', 'Concluído', 126.58),
+    ((SELECT id_pet FROM pet WHERE nome = 'Xuxa Pet' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '499.973.955-63') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '119.362.320-29'), CURRENT_DATE + -2, '09:00:00', 'Concluído', 23.98),
+    ((SELECT id_pet FROM pet WHERE nome = 'Bolt' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '391.261.548-79') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '559.730.105-20'), CURRENT_DATE + 8, '09:00:00', 'Concluído', 113.56),
+    ((SELECT id_pet FROM pet WHERE nome = 'Pingado' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '623.218.494-83') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '127.524.154-60'), CURRENT_DATE + 3, '16:00:00', 'Confirmado', 24.51),
+    ((SELECT id_pet FROM pet WHERE nome = 'Gaia' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '867.652.153-54') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '119.362.320-29'), CURRENT_DATE + -22, '10:00:00', 'Concluído', 24.04),
+    ((SELECT id_pet FROM pet WHERE nome = 'Bidu' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '202.175.650-37') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '614.482.341-59'), CURRENT_DATE + -3, '16:30:00', 'Confirmado', 103.82),
+    ((SELECT id_pet FROM pet WHERE nome = 'Pipoca' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '194.489.199-55') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '183.483.329-13'), CURRENT_DATE + 14, '17:00:00', 'Confirmado', 65.59),
+    ((SELECT id_pet FROM pet WHERE nome = 'Chico' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '499.973.955-63') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '119.362.320-29'), CURRENT_DATE + 13, '08:00:00', 'Agendado', 66.69),
+    ((SELECT id_pet FROM pet WHERE nome = 'Pingado' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '623.218.494-83') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '119.362.320-29'), CURRENT_DATE + -9, '16:30:00', 'Concluído', 200.95),
+    ((SELECT id_pet FROM pet WHERE nome = 'Mimi' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '786.373.818-97') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '614.482.341-59'), CURRENT_DATE + 0, '08:00:00', 'Cancelado', 57.34),
+    ((SELECT id_pet FROM pet WHERE nome = 'Ellie' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '677.778.127-20') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '559.730.105-20'), CURRENT_DATE + 4, '13:30:00', 'Concluído', 45.48),
+    ((SELECT id_pet FROM pet WHERE nome = 'Cookie' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '311.952.530-59') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '614.482.341-59'), CURRENT_DATE + -2, '12:30:00', 'Confirmado', 64.22),
+    ((SELECT id_pet FROM pet WHERE nome = 'Frajola' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '304.936.571-54') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '127.524.154-60'), CURRENT_DATE + -22, '14:00:00', 'Confirmado', 114.01),
+    ((SELECT id_pet FROM pet WHERE nome = 'Homer' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '533.813.848-81') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '183.483.329-13'), CURRENT_DATE + 11, '16:30:00', 'Cancelado', 141.16),
+    ((SELECT id_pet FROM pet WHERE nome = 'Pandora' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '533.813.848-81') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '559.730.105-20'), CURRENT_DATE + -24, '11:00:00', 'Concluído', 110.06),
+    ((SELECT id_pet FROM pet WHERE nome = 'Tico' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '336.492.810-29') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '127.524.154-60'), CURRENT_DATE + -7, '15:30:00', 'Agendado', 72.57),
+    ((SELECT id_pet FROM pet WHERE nome = 'Max' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '385.985.171-45') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '559.730.105-20'), CURRENT_DATE + -17, '13:00:00', 'Cancelado', 46.19),
+    ((SELECT id_pet FROM pet WHERE nome = 'Tico' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '336.492.810-29') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '119.362.320-29'), CURRENT_DATE + 10, '09:30:00', 'Cancelado', 45.24),
+    ((SELECT id_pet FROM pet WHERE nome = 'Apolo' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '953.100.411-46') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '119.362.320-29'), CURRENT_DATE + -8, '13:30:00', 'Concluído', 105.59),
+    ((SELECT id_pet FROM pet WHERE nome = 'Zeus' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '561.349.868-69') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '614.482.341-59'), CURRENT_DATE + -13, '10:30:00', 'Cancelado', 129.90),
+    ((SELECT id_pet FROM pet WHERE nome = 'Salsicha' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '132.980.438-19') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '559.730.105-20'), CURRENT_DATE + -16, '10:30:00', 'Concluído', 155.94),
+    ((SELECT id_pet FROM pet WHERE nome = 'Mel' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '961.754.619-87') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '183.483.329-13'), CURRENT_DATE + 7, '08:30:00', 'Concluído', 84.12),
+    ((SELECT id_pet FROM pet WHERE nome = 'Max' AND id_cliente = (SELECT id_cliente FROM cliente WHERE cpf = '909.733.331-76') LIMIT 1), (SELECT id_funcionario FROM funcionario WHERE cpf = '127.524.154-60'), CURRENT_DATE + 1, '17:00:00', 'Agendado', 143.66);
 
--- ────────────────────────────────────────────────────────────
---  7. AGENDAMENTO ↔ SERVIÇOS (tabela associativa)
--- ────────────────────────────────────────────────────────────
+-- ============ SERVIÇOS DE CADA AGENDAMENTO ============
 INSERT INTO agendamento_servico (id_agendamento, id_servico, preco_cobrado) VALUES
-  (1, 2, 70.00),   -- Thor: Banho e Tosa
-  (2, 1, 35.00),   -- Luna: Banho Simples
-  (3, 4, 120.00),  -- Rex: Consulta Veterinária
-  (4, 2, 70.00),   -- Mel: Banho e Tosa
-  (5, 7, 55.00),   -- Buddy: Hidratação de Pelagem
-  (6, 2, 70.00),   -- Nina: Banho e Tosa
-  (6, 8, 20.00),   -- Nina: Corte de Unhas (serviço adicional)
-  (7, 2, 70.00),   -- Max: Banho e Tosa
-  (8, 1, 35.00),   -- Bella: Banho Simples (cancelado)
-  (9, 8, 20.00),   -- Tobias: Corte de Unhas
-  (10, 2, 70.00);  -- Lola: Banho e Tosa
+    (1, (SELECT id_servico FROM servico WHERE nome = 'Vermifugação'), 45.38),
+    (1, (SELECT id_servico FROM servico WHERE nome = 'Tosa Higiênica'), 38.59),
+    (2, (SELECT id_servico FROM servico WHERE nome = 'Vermifugação'), 45.58),
+    (3, (SELECT id_servico FROM servico WHERE nome = 'Banho Terapêutico Antipulgas'), 70.74),
+    (4, (SELECT id_servico FROM servico WHERE nome = 'Consulta Veterinária'), 134.44),
+    (4, (SELECT id_servico FROM servico WHERE nome = 'Hidratação de Pelagem'), 57.79),
+    (5, (SELECT id_servico FROM servico WHERE nome = 'Vacinação V10'), 96.72),
+    (6, (SELECT id_servico FROM servico WHERE nome = 'Hidratação de Pelagem'), 57.09),
+    (6, (SELECT id_servico FROM servico WHERE nome = 'Vacinação Antirrábica'), 67.91),
+    (7, (SELECT id_servico FROM servico WHERE nome = 'Vermifugação'), 43.24),
+    (8, (SELECT id_servico FROM servico WHERE nome = 'Hidratação de Pelagem'), 57.02),
+    (8, (SELECT id_servico FROM servico WHERE nome = 'Vermifugação'), 44.16),
+    (9, (SELECT id_servico FROM servico WHERE nome = 'Vacinação Antirrábica'), 62.73),
+    (9, (SELECT id_servico FROM servico WHERE nome = 'Vermifugação'), 45.86),
+    (10, (SELECT id_servico FROM servico WHERE nome = 'Hidratação de Pelagem'), 59.36),
+    (10, (SELECT id_servico FROM servico WHERE nome = 'Vermifugação'), 46.24),
+    (11, (SELECT id_servico FROM servico WHERE nome = 'Aplicação de Microchip'), 114.63),
+    (11, (SELECT id_servico FROM servico WHERE nome = 'Vermifugação'), 46.68),
+    (12, (SELECT id_servico FROM servico WHERE nome = 'Tosa Higiênica'), 40.84),
+    (13, (SELECT id_servico FROM servico WHERE nome = 'Hidratação de Pelagem'), 57.28),
+    (14, (SELECT id_servico FROM servico WHERE nome = 'Aplicação de Microchip'), 106.02),
+    (15, (SELECT id_servico FROM servico WHERE nome = 'Aplicação de Microchip'), 106.78),
+    (15, (SELECT id_servico FROM servico WHERE nome = 'Corte de Unhas'), 24.46),
+    (16, (SELECT id_servico FROM servico WHERE nome = 'Consulta Veterinária'), 132.11),
+    (17, (SELECT id_servico FROM servico WHERE nome = 'Tosa Higiênica'), 40.00),
+    (17, (SELECT id_servico FROM servico WHERE nome = 'Corte de Unhas'), 24.44),
+    (18, (SELECT id_servico FROM servico WHERE nome = 'Consulta Veterinária'), 125.75),
+    (19, (SELECT id_servico FROM servico WHERE nome = 'Corte de Unhas'), 25.93),
+    (20, (SELECT id_servico FROM servico WHERE nome = 'Aplicação de Microchip'), 108.27),
+    (21, (SELECT id_servico FROM servico WHERE nome = 'Corte de Unhas'), 24.54),
+    (22, (SELECT id_servico FROM servico WHERE nome = 'Corte de Unhas'), 25.58),
+    (23, (SELECT id_servico FROM servico WHERE nome = 'Vacinação Antirrábica'), 66.44),
+    (23, (SELECT id_servico FROM servico WHERE nome = 'Tosa Higiênica'), 40.47),
+    (24, (SELECT id_servico FROM servico WHERE nome = 'Tosa Higiênica'), 40.67),
+    (24, (SELECT id_servico FROM servico WHERE nome = 'Corte de Unhas'), 25.17),
+    (25, (SELECT id_servico FROM servico WHERE nome = 'Banho Terapêutico Antipulgas'), 67.75),
+    (26, (SELECT id_servico FROM servico WHERE nome = 'Vacinação V10'), 92.59),
+    (26, (SELECT id_servico FROM servico WHERE nome = 'Aplicação de Microchip'), 110.64),
+    (27, (SELECT id_servico FROM servico WHERE nome = 'Hidratação de Pelagem'), 58.25),
+    (28, (SELECT id_servico FROM servico WHERE nome = 'Vermifugação'), 47.13),
+    (29, (SELECT id_servico FROM servico WHERE nome = 'Corte de Unhas'), 24.40),
+    (29, (SELECT id_servico FROM servico WHERE nome = 'Tosa Higiênica'), 39.06),
+    (30, (SELECT id_servico FROM servico WHERE nome = 'Aplicação de Microchip'), 106.78),
+    (31, (SELECT id_servico FROM servico WHERE nome = 'Vermifugação'), 45.92),
+    (31, (SELECT id_servico FROM servico WHERE nome = 'Vacinação V10'), 93.26),
+    (32, (SELECT id_servico FROM servico WHERE nome = 'Aplicação de Microchip'), 108.34),
+    (33, (SELECT id_servico FROM servico WHERE nome = 'Banho Terapêutico Antipulgas'), 72.93),
+    (34, (SELECT id_servico FROM servico WHERE nome = 'Vermifugação'), 46.33),
+    (35, (SELECT id_servico FROM servico WHERE nome = 'Vermifugação'), 43.98),
+    (36, (SELECT id_servico FROM servico WHERE nome = 'Banho Terapêutico Antipulgas'), 67.26),
+    (36, (SELECT id_servico FROM servico WHERE nome = 'Tosa Higiênica'), 40.60),
+    (37, (SELECT id_servico FROM servico WHERE nome = 'Corte de Unhas'), 24.60),
+    (37, (SELECT id_servico FROM servico WHERE nome = 'Aplicação de Microchip'), 115.28),
+    (38, (SELECT id_servico FROM servico WHERE nome = 'Corte de Unhas'), 25.69),
+    (38, (SELECT id_servico FROM servico WHERE nome = 'Consulta Veterinária'), 135.91),
+    (39, (SELECT id_servico FROM servico WHERE nome = 'Corte de Unhas'), 25.66),
+    (39, (SELECT id_servico FROM servico WHERE nome = 'Hidratação de Pelagem'), 58.64),
+    (40, (SELECT id_servico FROM servico WHERE nome = 'Vacinação Antirrábica'), 63.62),
+    (40, (SELECT id_servico FROM servico WHERE nome = 'Banho e Tosa Completa'), 81.61);
 
--- ────────────────────────────────────────────────────────────
---  8. PRONTUÁRIOS
--- ────────────────────────────────────────────────────────────
-INSERT INTO prontuario (id_pet, id_funcionario, data_atendimento, descricao) VALUES
-  (3, 2, '2026-06-25', 'Rex apresentou dificuldade de locomoção. Recomendado repouso e anti-inflamatório.'),
-  (7, 8, '2026-06-10', 'Max relatou coceira frequente. Suspeita de alergia alimentar confirmada. Dieta prescrita.'),
-  (1, 2, '2026-06-24', 'Thor em ótimas condições. Banho e tosa realizados sem intercorrências.'),
-  (6, 2, '2026-06-10', 'Nina passou por tosa completa e corte de unhas. Pelagem saudável.'),
-  (9, 2, '2026-06-23', 'Tobias realizou corte de unhas. Comportamento tranquilo durante o procedimento.');
-
--- ────────────────────────────────────────────────────────────
---  9. PRODUTOS
--- ────────────────────────────────────────────────────────────
-INSERT INTO produto (nome, preco, categoria, estoque_atual) VALUES
-  ('Ração Premium Adulto 15kg',   189.90, 'Alimentação', 30),
-  ('Ração Filhote Médio 10kg',    139.90, 'Alimentação', 25),
-  ('Petisco Dental Stick 200g',    24.90, 'Petisco',     80),
-  ('Shampoo Neutro Pet 500ml',     32.00, 'Higiene',     40),
-  ('Condicionador Pet 500ml',      34.00, 'Higiene',     35),
-  ('Anti-pulgas Spray 200ml',      48.00, 'Saúde',       50),
-  ('Coleira Antipulgas M',         55.00, 'Saúde',       20),
-  ('Brinquedo Corda Colorida',     18.00, 'Acessório',   60),
-  ('Cama Pet G',                  120.00, 'Acessório',   15),
-  ('Areia Sanitária Gatos 4kg',    32.00, 'Higiene',     45);
-
--- ────────────────────────────────────────────────────────────
--- 10. VENDAS
--- ────────────────────────────────────────────────────────────
+-- ============ VENDAS ============
+-- Pressupõe tabela venda vazia antes deste INSERT (ids nascem 1..N em sequência).
 INSERT INTO venda (data_venda, metodo_pagamento, valor_total) VALUES
-  ('2026-06-01', 'PIX',     214.80),
-  ('2026-06-05', 'Crédito', 189.90),
-  ('2026-06-10', 'Dinheiro', 74.90),
-  ('2026-06-12', 'Débito',   86.00),
-  ('2026-06-15', 'PIX',     120.00),
-  ('2026-06-20', 'Crédito', 209.90),
-  ('2026-06-22', 'PIX',      96.00),
-  ('2026-06-23', 'Dinheiro', 50.90);
+    (CURRENT_DATE + -30, 'PIX', 151.50),
+    (CURRENT_DATE + -1, 'Crédito', 73.80),
+    (CURRENT_DATE + -13, 'PIX', 68.70),
+    (CURRENT_DATE + -3, 'PIX', 41.70),
+    (CURRENT_DATE + -34, 'Crédito', 13.90),
+    (CURRENT_DATE + -25, 'PIX', 24.80),
+    (CURRENT_DATE + -48, 'Crédito', 81.50),
+    (CURRENT_DATE + -19, 'PIX', 249.80),
+    (CURRENT_DATE + -1, 'Dinheiro', 173.60),
+    (CURRENT_DATE + -5, 'Crédito', 123.60),
+    (CURRENT_DATE + -24, 'Dinheiro', 259.80),
+    (CURRENT_DATE + -27, 'Débito', 353.40),
+    (CURRENT_DATE + -43, 'PIX', 179.80),
+    (CURRENT_DATE + -14, 'Débito', 11.90),
+    (CURRENT_DATE + -39, 'Crédito', 104.60),
+    (CURRENT_DATE + -3, 'Débito', 262.30),
+    (CURRENT_DATE + -18, 'Dinheiro', 56.70),
+    (CURRENT_DATE + -40, 'PIX', 89.80),
+    (CURRENT_DATE + -45, 'Débito', 77.80),
+    (CURRENT_DATE + -24, 'Dinheiro', 275.40),
+    (CURRENT_DATE + -57, 'Dinheiro', 88.60),
+    (CURRENT_DATE + -28, 'Crédito', 217.50),
+    (CURRENT_DATE + -37, 'PIX', 49.80),
+    (CURRENT_DATE + -51, 'Débito', 89.80),
+    (CURRENT_DATE + -9, 'PIX', 107.20),
+    (CURRENT_DATE + -5, 'Dinheiro', 29.70),
+    (CURRENT_DATE + -53, 'Dinheiro', 104.40),
+    (CURRENT_DATE + -40, 'Débito', 304.50),
+    (CURRENT_DATE + -15, 'Débito', 9.90),
+    (CURRENT_DATE + -9, 'Dinheiro', 69.80),
+    (CURRENT_DATE + -24, 'Dinheiro', 113.60),
+    (CURRENT_DATE + -44, 'Dinheiro', 282.40),
+    (CURRENT_DATE + -58, 'Débito', 16.90),
+    (CURRENT_DATE + -1, 'Dinheiro', 78.60),
+    (CURRENT_DATE + -11, 'PIX', 309.70),
+    (CURRENT_DATE + -36, 'Dinheiro', 57.60),
+    (CURRENT_DATE + -35, 'PIX', 112.50),
+    (CURRENT_DATE + -41, 'Débito', 89.90),
+    (CURRENT_DATE + -38, 'PIX', 90.60),
+    (CURRENT_DATE + -9, 'Débito', 69.80),
+    (CURRENT_DATE + -22, 'Dinheiro', 187.70),
+    (CURRENT_DATE + -45, 'Dinheiro', 91.60),
+    (CURRENT_DATE + -12, 'Dinheiro', 177.60),
+    (CURRENT_DATE + -46, 'Crédito', 179.80),
+    (CURRENT_DATE + -4, 'PIX', 119.50),
+    (CURRENT_DATE + 0, 'PIX', 638.40),
+    (CURRENT_DATE + 0, 'Débito', 94.70),
+    (CURRENT_DATE + -36, 'PIX', 55.50),
+    (CURRENT_DATE + -9, 'Débito', 352.40),
+    (CURRENT_DATE + -34, 'PIX', 49.80);
 
--- ────────────────────────────────────────────────────────────
--- 11. VENDA ↔ PRODUTO
--- ────────────────────────────────────────────────────────────
-INSERT INTO venda_produto (id_venda, id_produto, quantidade) VALUES
-  (1, 1, 1),  -- Ração Premium
-  (1, 3, 1),  -- Petisco Dental
-  (2, 1, 1),  -- Ração Premium
-  (3, 4, 1),  -- Shampoo
-  (3, 3, 2),  -- Petisco Dental x2
-  (4, 5, 1),  -- Condicionador
-  (4, 4, 1),  -- Shampoo
-  (5, 9, 1),  -- Cama Pet G
-  (6, 2, 1),  -- Ração Filhote
-  (6, 6, 1),  -- Anti-pulgas Spray
-  (7, 7, 1),  -- Coleira Antipulgas
-  (7, 8, 1),  -- Brinquedo Corda
-  (8, 10, 1), -- Areia Sanitária
-  (8, 3, 1);  -- Petisco Dental
+-- ============ ITENS DE CADA VENDA ============
+INSERT INTO venda_produto (id_venda, id_produto, quantidade, preco_unitario) VALUES
+    (1, (SELECT id_produto FROM produto WHERE nome = 'Circuito com Bolinha'), 2, 45.90),
+    (1, (SELECT id_produto FROM produto WHERE nome = 'Ração Hamster Completa'), 3, 19.90),
+    (2, (SELECT id_produto FROM produto WHERE nome = 'Capa de Chuva Felina'), 2, 36.90),
+    (3, (SELECT id_produto FROM produto WHERE nome = 'Osso de Nylon'), 3, 22.90),
+    (4, (SELECT id_produto FROM produto WHERE nome = 'Petisco Sticks de Frango'), 3, 13.90),
+    (5, (SELECT id_produto FROM produto WHERE nome = 'Petisco Sticks de Frango'), 1, 13.90),
+    (6, (SELECT id_produto FROM produto WHERE nome = 'Bolinha Maciça'), 1, 14.90),
+    (6, (SELECT id_produto FROM produto WHERE nome = 'Petisco de Frutas'), 1, 9.90),
+    (7, (SELECT id_produto FROM produto WHERE nome = 'Ração Hamster Completa'), 2, 19.90),
+    (7, (SELECT id_produto FROM produto WHERE nome = 'Coleira com Sininho'), 3, 13.90),
+    (8, (SELECT id_produto FROM produto WHERE nome = 'Ração Premier Gatos Castrados'), 1, 99.90),
+    (8, (SELECT id_produto FROM produto WHERE nome = 'Casa Aviário Decorativa'), 1, 149.90),
+    (9, (SELECT id_produto FROM produto WHERE nome = 'Ponte de Madeira'), 1, 18.90),
+    (9, (SELECT id_produto FROM produto WHERE nome = 'Bola Passeadora'), 2, 24.90),
+    (9, (SELECT id_produto FROM produto WHERE nome = 'Ração Special Senior 10kg'), 1, 104.90),
+    (10, (SELECT id_produto FROM produto WHERE nome = 'Fantasia de Coelhinho'), 1, 18.90),
+    (10, (SELECT id_produto FROM produto WHERE nome = 'Comedouro de Cerâmica'), 3, 34.90),
+    (11, (SELECT id_produto FROM produto WHERE nome = 'Ração Golden Fórmula Cães'), 2, 129.90),
+    (12, (SELECT id_produto FROM produto WHERE nome = 'Ração Premier Gatos Castrados'), 3, 99.90),
+    (12, (SELECT id_produto FROM produto WHERE nome = 'Coleira Ajustável Gato'), 3, 17.90),
+    (13, (SELECT id_produto FROM produto WHERE nome = 'Cama Iglu Fechada'), 2, 89.90),
+    (14, (SELECT id_produto FROM produto WHERE nome = 'Petisco Snacks de Salmão'), 1, 11.90),
+    (15, (SELECT id_produto FROM produto WHERE nome = 'Roda de Exercícios'), 1, 29.90),
+    (15, (SELECT id_produto FROM produto WHERE nome = 'Coleira Ajustável Nylon'), 3, 24.90),
+    (16, (SELECT id_produto FROM produto WHERE nome = 'Ração Premium Hamster'), 1, 22.90),
+    (16, (SELECT id_produto FROM produto WHERE nome = 'Casinha de Madeira'), 3, 34.90),
+    (16, (SELECT id_produto FROM produto WHERE nome = 'Guia Retrátil 5m'), 3, 44.90),
+    (17, (SELECT id_produto FROM produto WHERE nome = 'Moletom Felino'), 1, 34.90),
+    (17, (SELECT id_produto FROM produto WHERE nome = 'Petisco Cream Malte'), 2, 10.90),
+    (18, (SELECT id_produto FROM produto WHERE nome = 'Kong Recheável'), 2, 44.90),
+    (19, (SELECT id_produto FROM produto WHERE nome = 'Suéter Listrado Quentinho'), 2, 38.90),
+    (20, (SELECT id_produto FROM produto WHERE nome = 'Petisco Snacks de Salmão'), 3, 11.90),
+    (20, (SELECT id_produto FROM produto WHERE nome = 'Ração Fancy Feast Filhotes'), 3, 79.90),
+    (21, (SELECT id_produto FROM produto WHERE nome = 'Ração Hamster Completa'), 3, 19.90),
+    (21, (SELECT id_produto FROM produto WHERE nome = 'Shampoo Antipulgas Gatos'), 1, 28.90),
+    (22, (SELECT id_produto FROM produto WHERE nome = 'Ração Special Gatos Idosos'), 2, 84.90),
+    (22, (SELECT id_produto FROM produto WHERE nome = 'Bola com Guizo'), 3, 15.90),
+    (23, (SELECT id_produto FROM produto WHERE nome = 'Ninho Redondo de Palha'), 2, 24.90),
+    (24, (SELECT id_produto FROM produto WHERE nome = 'Kong Recheável'), 2, 44.90),
+    (25, (SELECT id_produto FROM produto WHERE nome = 'Ratinho de Pelúcia'), 3, 11.90),
+    (25, (SELECT id_produto FROM produto WHERE nome = 'Mola Colorida'), 2, 8.90),
+    (25, (SELECT id_produto FROM produto WHERE nome = 'Shampoo Seco para Hamster'), 3, 17.90),
+    (26, (SELECT id_produto FROM produto WHERE nome = 'Petisco de Frutas'), 3, 9.90),
+    (27, (SELECT id_produto FROM produto WHERE nome = 'Coleira com Guizo'), 2, 14.90),
+    (27, (SELECT id_produto FROM produto WHERE nome = 'Suéter Gatinho'), 1, 29.90),
+    (27, (SELECT id_produto FROM produto WHERE nome = 'Perfume Roedor'), 3, 14.90),
+    (28, (SELECT id_produto FROM produto WHERE nome = 'Cama Iglu Fechada'), 3, 89.90),
+    (28, (SELECT id_produto FROM produto WHERE nome = 'Coleira com Placa de Identificação'), 1, 19.90),
+    (28, (SELECT id_produto FROM produto WHERE nome = 'Alpiste Selecionado'), 1, 14.90),
+    (29, (SELECT id_produto FROM produto WHERE nome = 'Petisco de Frutas'), 1, 9.90),
+    (30, (SELECT id_produto FROM produto WHERE nome = 'Moletom Felino'), 2, 34.90),
+    (31, (SELECT id_produto FROM produto WHERE nome = 'Pelúcia com Apito'), 2, 21.90),
+    (31, (SELECT id_produto FROM produto WHERE nome = 'Moletom Felino'), 2, 34.90),
+    (32, (SELECT id_produto FROM produto WHERE nome = 'Guia para Gatos'), 3, 29.90),
+    (32, (SELECT id_produto FROM produto WHERE nome = 'Ração Premium Hamster'), 1, 22.90),
+    (32, (SELECT id_produto FROM produto WHERE nome = 'Ração Special Gatos Idosos'), 2, 84.90),
+    (33, (SELECT id_produto FROM produto WHERE nome = 'Frutas Desidratadas'), 1, 16.90),
+    (34, (SELECT id_produto FROM produto WHERE nome = 'Shampoo Seco para Hamster'), 3, 17.90),
+    (34, (SELECT id_produto FROM produto WHERE nome = 'Shampoo Neutro Sanol'), 1, 24.90),
+    (35, (SELECT id_produto FROM produto WHERE nome = 'Ração Special Senior 10kg'), 2, 104.90),
+    (35, (SELECT id_produto FROM produto WHERE nome = 'Ração Premier Gatos Castrados'), 1, 99.90),
+    (36, (SELECT id_produto FROM produto WHERE nome = 'Ratinho de Pelúcia'), 2, 11.90),
+    (36, (SELECT id_produto FROM produto WHERE nome = 'Varinha com Penas'), 2, 16.90),
+    (37, (SELECT id_produto FROM produto WHERE nome = 'Kong Recheável'), 1, 44.90),
+    (37, (SELECT id_produto FROM produto WHERE nome = 'Ração Hamster Completa'), 1, 19.90),
+    (37, (SELECT id_produto FROM produto WHERE nome = 'Lenços Umedecidos Pet'), 3, 15.90),
+    (38, (SELECT id_produto FROM produto WHERE nome = 'Ração Pedigree Adulto 10kg'), 1, 89.90),
+    (39, (SELECT id_produto FROM produto WHERE nome = 'Almofada de Catnip'), 1, 19.90),
+    (39, (SELECT id_produto FROM produto WHERE nome = 'Capa de Chuva Felina'), 1, 36.90),
+    (39, (SELECT id_produto FROM produto WHERE nome = 'Varinha com Penas'), 2, 16.90),
+    (40, (SELECT id_produto FROM produto WHERE nome = 'Guia Retrátil 5m'), 1, 44.90),
+    (40, (SELECT id_produto FROM produto WHERE nome = 'Bola Passeadora'), 1, 24.90),
+    (41, (SELECT id_produto FROM produto WHERE nome = 'Rodinha Silenciosa'), 1, 27.90),
+    (41, (SELECT id_produto FROM produto WHERE nome = 'Ração Premier Raças Pequenas'), 1, 114.90),
+    (41, (SELECT id_produto FROM produto WHERE nome = 'Moletom Canino Cinza'), 1, 44.90),
+    (42, (SELECT id_produto FROM produto WHERE nome = 'Poleiro Natural de Madeira'), 3, 22.90),
+    (42, (SELECT id_produto FROM produto WHERE nome = 'Ração Premium Hamster'), 1, 22.90),
+    (43, (SELECT id_produto FROM produto WHERE nome = 'Circuito com Bolinha'), 3, 45.90),
+    (43, (SELECT id_produto FROM produto WHERE nome = 'Roupinha de Frio Xadrez'), 1, 39.90),
+    (44, (SELECT id_produto FROM produto WHERE nome = 'Cama Iglu Fechada'), 2, 89.90),
+    (45, (SELECT id_produto FROM produto WHERE nome = 'Poleiro Natural de Madeira'), 2, 22.90),
+    (45, (SELECT id_produto FROM produto WHERE nome = 'Rodinha Silenciosa'), 1, 27.90),
+    (45, (SELECT id_produto FROM produto WHERE nome = 'Ração Premium Hamster'), 2, 22.90),
+    (46, (SELECT id_produto FROM produto WHERE nome = 'Casinha de Madeira'), 2, 189.90),
+    (46, (SELECT id_produto FROM produto WHERE nome = 'Peixe com Catnip'), 1, 18.90),
+    (46, (SELECT id_produto FROM produto WHERE nome = 'Ração Fancy Feast Filhotes'), 3, 79.90),
+    (47, (SELECT id_produto FROM produto WHERE nome = 'Ração Farinhada Trinca-Ferro'), 1, 24.90),
+    (47, (SELECT id_produto FROM produto WHERE nome = 'Comedouro de Cerâmica'), 2, 34.90),
+    (48, (SELECT id_produto FROM produto WHERE nome = 'Petisco Whiskas Saúde'), 2, 9.90),
+    (48, (SELECT id_produto FROM produto WHERE nome = 'Shampoo Seco para Hamster'), 1, 17.90),
+    (48, (SELECT id_produto FROM produto WHERE nome = 'Mola Colorida'), 2, 8.90),
+    (49, (SELECT id_produto FROM produto WHERE nome = 'Coleira com Sininho'), 2, 13.90),
+    (49, (SELECT id_produto FROM produto WHERE nome = 'Moletom Canino Cinza'), 3, 44.90),
+    (49, (SELECT id_produto FROM produto WHERE nome = 'Casinha de Madeira'), 1, 189.90),
+    (50, (SELECT id_produto FROM produto WHERE nome = 'Ração Farinhada Trinca-Ferro'), 2, 24.90);
 
--- ────────────────────────────────────────────────────────────
--- 12. INSUMOS
--- ────────────────────────────────────────────────────────────
-INSERT INTO insumos (nome, quantidade_estoque, quantidade_gasta) VALUES
-  ('Shampoo a Granel (L)',       20, 0),
-  ('Condicionador a Granel (L)', 15, 0),
-  ('Toalha Descartável',        200, 0),
-  ('Luva de Proteção',          100, 0),
-  ('Algodão (pacote)',           50, 0),
-  ('Desinfetante (L)',           10, 0),
-  ('Lâmina de Tosa',             30, 0),
-  ('Colônia Pet (frasco)',       25, 0);
+-- ============ INSUMOS ============
+INSERT INTO insumos (nome, quantidade_estoque, quantidade_gasta, custo_unitario) VALUES
+    ('Shampoo neutro (litro)', 40, 0, 32.00),
+    ('Luvas descartáveis (caixa c/ 100 pares)', 15, 0, 28.50),
+    ('Seringas descartáveis (unidade)', 200, 0, 0.85),
+    ('Álcool 70% (litro)', 30, 0, 12.90),
+    ('Agulhas hipodérmicas (unidade)', 250, 0, 0.45),
+    ('Toalhas descartáveis (pacote c/ 50)', 25, 0, 22.00),
+    ('Vacina V10 (dose)', 60, 0, 45.00),
+    ('Vacina antirrábica (dose)', 60, 0, 30.00),
+    ('Sabão desinfetante (litro)', 20, 0, 18.90),
+    ('Coleiras de contenção (unidade)', 10, 0, 15.00);
 
--- ────────────────────────────────────────────────────────────
--- 13. USO DE INSUMOS (trigger atualiza estoque automaticamente)
--- ────────────────────────────────────────────────────────────
+-- ============ USO DE INSUMOS ============
+-- Cada linha aqui dispara a trigger trg_saida_insumo, que já decrementa o
+-- estoque acima automaticamente — os valores de quantidade_estoque informados
+-- no INSERT anterior já são o saldo ANTES dessas baixas.
 INSERT INTO uso_insumo (id_insumo, quantidade_usada, data_uso) VALUES
-  (1, 2, '2026-06-10'),  -- Shampoo p/ Nina e Max
-  (2, 1, '2026-06-10'),  -- Condicionador p/ Nina
-  (3, 4, '2026-06-10'),  -- Toalhas no dia 10
-  (7, 2, '2026-06-10'),  -- Lâminas no dia 10
-  (8, 2, '2026-06-10'),  -- Colônia no dia 10
-  (1, 1, '2026-06-23'),  -- Shampoo p/ Tobias
-  (3, 2, '2026-06-23'),  -- Toalhas dia 23
-  (4, 1, '2026-06-23');  -- Luva dia 23
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Vacina V10 (dose)'), 2, CURRENT_DATE + -22),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Álcool 70% (litro)'), 3, CURRENT_DATE + -10),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Luvas descartáveis (caixa c/ 100 pares)'), 4, CURRENT_DATE + -3),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Toalhas descartáveis (pacote c/ 50)'), 1, CURRENT_DATE + -13),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Álcool 70% (litro)'), 1, CURRENT_DATE + -22),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Vacina V10 (dose)'), 5, CURRENT_DATE + -11),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Shampoo neutro (litro)'), 1, CURRENT_DATE + -24),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Coleiras de contenção (unidade)'), 5, CURRENT_DATE + -24),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Vacina antirrábica (dose)'), 2, CURRENT_DATE + -3),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Toalhas descartáveis (pacote c/ 50)'), 3, CURRENT_DATE + 0),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Shampoo neutro (litro)'), 2, CURRENT_DATE + -1),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Álcool 70% (litro)'), 1, CURRENT_DATE + -7),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Vacina antirrábica (dose)'), 2, CURRENT_DATE + -8),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Coleiras de contenção (unidade)'), 2, CURRENT_DATE + -18),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Álcool 70% (litro)'), 5, CURRENT_DATE + -20),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Agulhas hipodérmicas (unidade)'), 4, CURRENT_DATE + -16),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Sabão desinfetante (litro)'), 3, CURRENT_DATE + -21),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Agulhas hipodérmicas (unidade)'), 3, CURRENT_DATE + -14),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Vacina antirrábica (dose)'), 4, CURRENT_DATE + -27),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Vacina antirrábica (dose)'), 3, CURRENT_DATE + -1),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Álcool 70% (litro)'), 3, CURRENT_DATE + -20),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Vacina V10 (dose)'), 1, CURRENT_DATE + -12),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Álcool 70% (litro)'), 2, CURRENT_DATE + -30),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Agulhas hipodérmicas (unidade)'), 5, CURRENT_DATE + -1),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Coleiras de contenção (unidade)'), 5, CURRENT_DATE + -7);
 
+-- ============ PEDIDOS DE COMPRA DE INSUMO ============
+INSERT INTO pedido_insumo (id_insumo, quantidade, status, criado_em) VALUES
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Vacina V10 (dose)'), 28, 'Pendente', now() + interval '-14 days'),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Toalhas descartáveis (pacote c/ 50)'), 24, 'Comprado', now() + interval '-2 days'),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Álcool 70% (litro)'), 41, 'Comprado', now() + interval '-12 days'),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Vacina antirrábica (dose)'), 41, 'Comprado', now() + interval '-15 days'),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Toalhas descartáveis (pacote c/ 50)'), 20, 'Pendente', now() + interval '-3 days'),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Vacina antirrábica (dose)'), 21, 'Pendente', now() + interval '-4 days'),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Shampoo neutro (litro)'), 14, 'Pendente', now() + interval '-20 days'),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Vacina V10 (dose)'), 18, 'Pendente', now() + interval '-18 days'),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Seringas descartáveis (unidade)'), 10, 'Pendente', now() + interval '-4 days'),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Vacina antirrábica (dose)'), 33, 'Pendente', now() + interval '-1 days'),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Coleiras de contenção (unidade)'), 40, 'Comprado', now() + interval '-20 days'),
+    ((SELECT id_insumo FROM insumos WHERE nome = 'Shampoo neutro (litro)'), 44, 'Comprado', now() + interval '-20 days');
 
--- ============================================================
---  DML – UPDATES (atualização de dados existentes)
--- ============================================================
+-- ============ DESPESAS ============
+INSERT INTO despesa (categoria, descricao, valor, data) VALUES
+    ('Salário', 'Folha de pagamento mensal - equipe', 2050.18, CURRENT_DATE + -14),
+    ('Salário', 'Folha de pagamento mensal - equipe', 2824.22, CURRENT_DATE + -42),
+    ('Insumos', 'Compra de vacinas e material clínico', 162.86, CURRENT_DATE + -8),
+    ('Insumos', 'Reposição de shampoos e produtos de higiene', 673.39, CURRENT_DATE + -33),
+    ('Manutenção', 'Manutenção do ar-condicionado da clínica', 1248.02, CURRENT_DATE + -2),
+    ('Manutenção', 'Conserto de encanamento do canil', 433.05, CURRENT_DATE + -2),
+    ('Outros', 'Conta de energia elétrica', 130.08, CURRENT_DATE + -51),
+    ('Outros', 'Conta de água', 205.30, CURRENT_DATE + -21),
+    ('Outros', 'Assinatura de sistema de gestão', 353.76, CURRENT_DATE + -8),
+    ('Manutenção', 'Pintura da sala de banho e tosa', 660.77, CURRENT_DATE + -10),
+    ('Insumos', 'Compra de seringas e agulhas', 447.67, CURRENT_DATE + -37),
+    ('Outros', 'Material de escritório', 578.83, CURRENT_DATE + -31);
 
--- Atualizar telefone de cliente
-UPDATE cliente
-SET telefone = '(61) 91111-0000'
-WHERE cpf = '123.456.789-00';
-
--- Reajuste de salário dos Groomers (10%)
-UPDATE funcionario
-SET salario = ROUND(salario * 1.10, 2)
-WHERE cargo = 'Groomer';
-
--- Atualizar status do agendamento cancelado para histórico
-UPDATE agendamento
-SET status = 'Cancelado'
-WHERE id_agendamento = 8;
-
--- Atualizar estoque após venda manual de produto
-UPDATE produto
-SET estoque_atual = estoque_atual - 1
-WHERE id_produto = 9;  -- Cama Pet G vendida
-
--- Animal de adoção: atualizar status após tratamento
-UPDATE animal_adocao
-SET status = 'Disponível'
-WHERE id_animal_adocao = 2;  -- Bruto concluiu tratamento
-
--- Atualizar preço de serviço
-UPDATE servico
-SET preco_base = 130.00
-WHERE nome = 'Consulta Veterinária';
-
-
--- ============================================================
---  DML – DELETES (remoção controlada)
--- ============================================================
-
--- Remover agendamento cancelado (exemplo de limpeza)
--- OBS: remover primeiro da tabela associativa para evitar violação de FK
-DELETE FROM agendamento_servico
-WHERE id_agendamento = 8;
-
-DELETE FROM agendamento
-WHERE id_agendamento = 8;
-
--- Remover produto sem estoque e sem vendas associadas (exemplo)
--- (verificar antes se não há referência em venda_produto)
--- DELETE FROM produto WHERE id_produto = 8 AND estoque_atual = 0;
-
--- Remover animal já adotado do fluxo ativo (movimentação de dados)
--- DELETE FROM animal_adocao WHERE id_animal_adocao = 3 AND status = 'Adotado';
-
-
--- ============================================================
---  CONSULTAS DE VERIFICAÇÃO (SELECTs úteis)
--- ============================================================
-
--- Todos os pets com seus tutores
-SELECT c.nome AS tutor, p.nome AS pet, p.raca, p.porte, p.faixa_etaria
-FROM pet p
-JOIN cliente c ON p.id_cliente = c.id_cliente
-ORDER BY c.nome;
-
--- Agendamentos confirmados com serviços e funcionário responsável
-SELECT
-    a.id_agendamento,
-    p.nome   AS pet,
-    f.nome   AS funcionario,
-    a.data_agendamento,
-    a.hora,
-    STRING_AGG(s.nome, ', ') AS servicos,
-    a.valor_total,
-    a.status
-FROM agendamento a
-JOIN pet p ON a.id_pet = p.id_pet
-JOIN funcionario f ON a.id_funcionario = f.id_funcionario
-JOIN agendamento_servico ags ON a.id_agendamento = ags.id_agendamento
-JOIN servico s ON ags.id_servico = s.id_servico
-WHERE a.status IN ('Agendado', 'Confirmado')
-GROUP BY a.id_agendamento, p.nome, f.nome, a.data_agendamento, a.hora, a.valor_total, a.status
-ORDER BY a.data_agendamento, a.hora;
-
--- Estoque de insumos atualizado
-SELECT nome, quantidade_estoque, quantidade_gasta
-FROM insumos
-ORDER BY nome;
-
--- Animais disponíveis para adoção
-SELECT nome, raca, porte, faixa_etaria, data_resgate
-FROM animal_adocao
-WHERE status = 'Disponível'
-ORDER BY data_resgate;
-
--- Faturamento por método de pagamento
-SELECT metodo_pagamento, COUNT(*) AS qtd_vendas, SUM(valor_total) AS total
-FROM venda
-GROUP BY metodo_pagamento
-ORDER BY total DESC;
+-- ============ SOLICITAÇÕES DE ADOÇÃO ============
+INSERT INTO solicitacao_adocao (id_animal_adocao, id_cliente, nome_solicitante, telefone, email, idade_solicitante, tipo_moradia, status) VALUES
+    ((SELECT id_animal_adocao FROM animal_adocao WHERE nome = 'Amora'), (SELECT id_cliente FROM cliente WHERE cpf = '666.399.814-26'), 'Beatriz Andrade', '(61) 99811-2233', 'beatriz.andrade@email.com', 27, 'Casa com quintal', 'Em Análise'),
+    ((SELECT id_animal_adocao FROM animal_adocao WHERE nome = 'Bartô'), NULL, 'Gustavo Farias', '(61) 98122-4455', 'gustavo.farias@email.com', 34, 'Apartamento com tela', 'Em Análise'),
+    ((SELECT id_animal_adocao FROM animal_adocao WHERE nome = 'Mel'), (SELECT id_cliente FROM cliente WHERE cpf = '304.936.571-54'), 'Camila Rezende', '(61) 99233-6677', 'camila.rezende@email.com', 22, 'Casa sem quintal', 'Pendente'),
+    ((SELECT id_animal_adocao FROM animal_adocao WHERE nome = 'Thor'), NULL, 'Henrique Salles', '(61) 98344-8899', 'henrique.salles@email.com', 41, 'Apartamento sem tela', 'Pendente'),
+    ((SELECT id_animal_adocao FROM animal_adocao WHERE nome = 'Nina & Tico'), (SELECT id_cliente FROM cliente WHERE cpf = '579.641.357-80'), 'Larissa Freitas', '(61) 99455-1122', 'larissa.freitas@email.com', 29, 'Casa com quintal', 'Recusada');
