@@ -32,7 +32,7 @@ export default function Insumos() {
       const data = await res.json();
       setEstoque(data);
       if (data.length > 0) {
-        setInsumoSelecionado(function(prev) {
+        setInsumoSelecionado(function (prev) {
           const existe = data.some(item => item.id_insumo === Number(prev));
           return existe ? prev : data[0].id_insumo;
         });
@@ -91,7 +91,7 @@ export default function Insumos() {
       setMensagem(`Baixa de ${qtd} unidade(s) de "${nomeInsumo}" registrada — estoque atualizado.`);
       setTipoMensagem("success");
       setQuantidadeUsada(1);
-      
+
       await carregarEstoque();
     } catch (err) {
       console.error(err);
@@ -168,7 +168,7 @@ export default function Insumos() {
       });
       setPedidos(novosPedidos);
       localStorage.setItem("chew_pedidos_compra", JSON.stringify(novosPedidos));
-      
+
       setMensagem(`Pedido de "${pedido.nome}" comprado — estoque atualizado.`);
       setTipoMensagem("success");
 
@@ -178,6 +178,27 @@ export default function Insumos() {
       setMensagem("Erro ao processar compra: " + err.message);
       setTipoMensagem("error");
     }
+  }
+
+  function recomprarPedido(id) {
+    const novosPedidos = pedidos.map(function (p) {
+      if (p.id === id) {
+        return {
+          ...p,
+          status: "pendente",
+        };
+      }
+      return p;
+    });
+
+    setPedidos(novosPedidos);
+    localStorage.setItem(
+      "chew_pedidos_compra",
+      JSON.stringify(novosPedidos)
+    );
+
+    setMensagem("Pedido marcado para recompra.");
+    setTipoMensagem("success");
   }
 
   return (
@@ -230,7 +251,7 @@ export default function Insumos() {
               )}
 
               {mensagem && (
-                <div 
+                <div
                   className={tipoMensagem === "success" ? "chew-success-hint" : "chew-login-alert"}
                   style={{ marginTop: "1rem", marginBottom: "0rem" }}
                 >
@@ -241,34 +262,36 @@ export default function Insumos() {
 
             <div className="chew-panel">
               <h2 className="chew-panel-title">Estoque atual</h2>
-              <table className="chew-table">
-                <thead>
-                  <tr>
-                    <th>Insumo</th>
-                    <th>Estoque atual</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {estoque.map(function (item) {
-                    return (
-                      <tr key={item.id_insumo}>
-                        <td>{item.nome}</td>
-                        <td>
-                          <span
-                            className={
-                              item.quantidade_estoque <= LIMITE_ESTOQUE_BAIXO
-                                ? "chew-badge estoque-baixo"
-                                : ""
-                            }
-                          >
-                            {item.quantidade_estoque}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div className="chew-table-scroll">
+                <table className="chew-table">
+                  <thead>
+                    <tr>
+                      <th>Insumo</th>
+                      <th>Estoque atual</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {estoque.map(function (item) {
+                      return (
+                        <tr key={item.id_insumo}>
+                          <td>{item.nome}</td>
+                          <td>
+                            <span
+                              className={
+                                item.quantidade_estoque <= LIMITE_ESTOQUE_BAIXO
+                                  ? "chew-badge estoque-baixo"
+                                  : ""
+                              }
+                            >
+                              {item.quantidade_estoque}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -302,47 +325,66 @@ export default function Insumos() {
 
             <div className="chew-panel">
               <h2 className="chew-panel-title">Pedidos de compra</h2>
-              <table className="chew-table">
-                <thead>
-                  <tr>
-                    <th>Item</th>
-                    <th>Qtd.</th>
-                    <th>Status</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pedidos.map(function (p) {
-                    return (
-                      <tr key={p.id}>
-                        <td>{p.nome}</td>
-                        <td>{p.quantidade}</td>
-                        <td>
-                          <span
-                            className={
-                              "chew-badge " +
-                              (p.status === "comprado" ? "concluido" : "confirmado")
-                            }
-                          >
-                            {LABEL_STATUS_PEDIDO[p.status]}
-                          </span>
-                        </td>
-                        <td style={{ textAlign: "right" }}>
-                          {p.status === "pendente" && (
-                            <button
-                              className="chew-btn-orange"
-                              style={{ width: "auto", padding: "6px 14px", fontSize: "0.75rem" }}
-                              onClick={function () { marcarComoComprado(p.id); }}
+              <div className="chew-table-scroll">
+                <table className="chew-table">
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Qtd.</th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pedidos.map(function (p) {
+                      return (
+                        <tr key={p.id}>
+                          <td>{p.nome}</td>
+                          <td>{p.quantidade}</td>
+                          <td>
+                            <span
+                              className={
+                                "chew-badge " +
+                                (p.status === "comprado" ? "concluido" : "confirmado")
+                              }
                             >
-                              Marcar comprado
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                              {LABEL_STATUS_PEDIDO[p.status]}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            {p.status === "pendente" ? (
+                              <button
+                                className="chew-btn-orange"
+                                style={{
+                                  width: "auto",
+                                  padding: "6px 14px",
+                                  fontSize: "0.75rem",
+                                }}
+                                onClick={() => marcarComoComprado(p.id)}
+                              >
+                                Marcar comprado
+                              </button>
+                            ) : (
+                              <button
+                                className="chew-btn-orange"
+                                style={{
+                                  width: "auto",
+                                  padding: "6px 14px",
+                                  fontSize: "0.75rem",
+                                  background: "#2e7d32",
+                                }}
+                                onClick={() => recomprarPedido(p.id)}
+                              >
+                                Recomprar
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </>
