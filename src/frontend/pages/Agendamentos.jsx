@@ -45,6 +45,13 @@ export default function Agendamentos() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Search / filter states
+  const [searchText, setSearchText] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterEmployee, setFilterEmployee] = useState("");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
+
   // Form states
   const [selectedClientId, setSelectedClientId] = useState("");
   const [selectedPetId, setSelectedPetId] = useState("");
@@ -181,7 +188,38 @@ export default function Agendamentos() {
     );
   }
 
+  // ── Filtering logic ──────────────────────────────────────────────
+  const agendamentosFiltrados = agendamentos.filter(function (a) {
+    const texto = searchText.trim().toLowerCase();
+    if (texto) {
+      const petMatch = (a.pet_name || '').toLowerCase().includes(texto);
+      const clienteMatch = (a.cliente_name || '').toLowerCase().includes(texto);
+      const funcMatch = (a.funcionario_name || '').toLowerCase().includes(texto);
+      if (!petMatch && !clienteMatch && !funcMatch) return false;
+    }
+    if (filterStatus && a.status !== filterStatus) return false;
+    if (filterEmployee && String(a.id_funcionario) !== filterEmployee) return false;
+    if (filterDateFrom) {
+      const dataA = (a.data_agendamento || '').split('T')[0];
+      if (dataA < filterDateFrom) return false;
+    }
+    if (filterDateTo) {
+      const dataA = (a.data_agendamento || '').split('T')[0];
+      if (dataA > filterDateTo) return false;
+    }
+    return true;
+  });
+
+  function limparFiltros() {
+    setSearchText("");
+    setFilterStatus("");
+    setFilterEmployee("");
+    setFilterDateFrom("");
+    setFilterDateTo("");
+  }
+
   const total = agendamentos.length;
+  const totalFiltrado = agendamentosFiltrados.length;
   const contagem = OPCOES_STATUS.reduce(function (acc, status) {
     acc[status] = agendamentos.filter(function (a) { return a.status === status; }).length;
     return acc;
@@ -191,6 +229,92 @@ export default function Agendamentos() {
     <PainelFuncionarioLayout>
       <div className="chew-content-header">
         <h1 className="chew-content-title">Agendamentos</h1>
+      </div>
+
+      {/* ── Barra de pesquisa ── */}
+      <div className="chew-panel" style={{ marginBottom: "1.5rem" }}>
+        <h2 className="chew-panel-title" style={{ marginBottom: "1rem" }}>🔍 Pesquisar agendamentos</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.8rem", marginBottom: "0.8rem" }}>
+          <div>
+            <label className="chew-field-label">Pet, cliente ou profissional</label>
+            <input
+              type="text"
+              className="chew-input-dark"
+              placeholder="Digite para pesquisar..."
+              value={searchText}
+              onChange={function (e) { setSearchText(e.target.value); }}
+              style={{ marginBottom: 0 }}
+            />
+          </div>
+          <div>
+            <label className="chew-field-label">Status</label>
+            <select
+              className="chew-input-dark"
+              value={filterStatus}
+              onChange={function (e) { setFilterStatus(e.target.value); }}
+              style={{ marginBottom: 0 }}
+            >
+              <option value="">Todos os status</option>
+              {OPCOES_STATUS.map(function (op) {
+                return <option key={op} value={op}>{LABEL_STATUS[op]}</option>;
+              })}
+            </select>
+          </div>
+          <div>
+            <label className="chew-field-label">Profissional</label>
+            <select
+              className="chew-input-dark"
+              value={filterEmployee}
+              onChange={function (e) { setFilterEmployee(e.target.value); }}
+              style={{ marginBottom: 0 }}
+            >
+              <option value="">Todos os profissionais</option>
+              {employees.map(function (emp) {
+                return (
+                  <option key={emp.id_funcionario} value={emp.id_funcionario}>
+                    {emp.nome} ({emp.cargo})
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: "0.8rem", alignItems: "flex-end" }}>
+          <div>
+            <label className="chew-field-label">Data início</label>
+            <input
+              type="date"
+              className="chew-input-dark"
+              value={filterDateFrom}
+              onChange={function (e) { setFilterDateFrom(e.target.value); }}
+              style={{ marginBottom: 0 }}
+            />
+          </div>
+          <div>
+            <label className="chew-field-label">Data fim</label>
+            <input
+              type="date"
+              className="chew-input-dark"
+              value={filterDateTo}
+              onChange={function (e) { setFilterDateTo(e.target.value); }}
+              style={{ marginBottom: 0 }}
+            />
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", paddingBottom: "0" }}>
+            <button
+              onClick={limparFiltros}
+              className="chew-btn-orange"
+              style={{ width: "auto", padding: "0.7rem 1.2rem", fontSize: "0.85rem" }}
+            >
+              Limpar filtros
+            </button>
+            {(searchText || filterStatus || filterEmployee || filterDateFrom || filterDateTo) && (
+              <span style={{ fontSize: "0.8rem", color: "var(--chew-text-muted-light)", whiteSpace: "nowrap", alignSelf: "center" }}>
+                {totalFiltrado} de {total} resultado(s)
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="chew-content-grid" style={{ gridTemplateColumns: "repeat(5, 1fr)", marginBottom: "1.5rem" }}>
@@ -314,87 +438,105 @@ export default function Agendamentos() {
 
         <div className="chew-panel">
           <h2 className="chew-panel-title">Todos os agendamentos</h2>
-          <div style={{ maxHeight: "420px", overflowY: "auto" }}>
-            <table className="chew-table">
-              <thead>
-                <tr>
-                  <th>Pet</th>
-                  <th>Tutor</th>
-                  <th>Data</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {agendamentos.map(function (a) {
-                  return (
-                    <tr key={a.id_agendamento}>
-                      <td>{a.pet_name || '—'}</td>
-                      <td>{a.cliente_name || '—'}</td>
-                      <td>{formatDateForDisplay(a.data_agendamento)} • {a.hora ? a.hora.substring(0, 5) : '—'}</td>
-                      <td>
-                        <span className={"chew-badge " + (STATUS_CLASS_MAP[a.status] || 'agendado')}>
-                          {LABEL_STATUS[a.status] || a.status}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          {agendamentosFiltrados.length === 0 ? (
+            <p style={{ color: "var(--chew-text-muted-light)", fontSize: "0.85rem", textAlign: "center", padding: "1.5rem 0" }}>
+              Nenhum agendamento encontrado com os filtros aplicados.
+            </p>
+          ) : (
+            <div style={{ maxHeight: "420px", overflowY: "auto" }}>
+              <table className="chew-table">
+                <thead>
+                  <tr>
+                    <th>Pet</th>
+                    <th>Tutor</th>
+                    <th>Profissional</th>
+                    <th>Data</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {agendamentosFiltrados.map(function (a) {
+                    return (
+                      <tr key={a.id_agendamento}>
+                        <td>{a.pet_name || '—'}</td>
+                        <td>{a.cliente_name || '—'}</td>
+                        <td>{a.funcionario_name || '—'}</td>
+                        <td>{formatDateForDisplay(a.data_agendamento)} • {a.hora ? a.hora.substring(0, 5) : '—'}</td>
+                        <td>
+                          <span className={"chew-badge " + (STATUS_CLASS_MAP[a.status] || 'agendado')}>
+                            {LABEL_STATUS[a.status] || a.status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="chew-panel">
         <h2 className="chew-panel-title">Atualizar status</h2>
-        <table className="chew-table">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Horário</th>
-              <th>Pet</th>
-              <th>Serviço(s)</th>
-              <th>Status</th>
-              <th>Atualizar</th>
-            </tr>
-          </thead>
-          <tbody>
-            {agendamentos.map(function (a) {
-              const serviceNames = a.servicos && Array.isArray(a.servicos)
-                ? a.servicos.map(s => s.nome).join(', ')
-                : '—';
-              return (
-                <tr key={a.id_agendamento}>
-                  <td>{formatDateForDisplay(a.data_agendamento)}</td>
-                  <td>{a.hora ? a.hora.substring(0, 5) : '—'}</td>
-                  <td>{a.pet_name || '—'}</td>
-                  <td>{serviceNames}</td>
-                  <td>
-                    <span className={"chew-badge " + (STATUS_CLASS_MAP[a.status] || 'agendado')}>
-                      {LABEL_STATUS[a.status] || a.status}
-                    </span>
-                  </td>
-                  <td>
-                    <select
-                      className="chew-input-dark"
-                      style={{ marginBottom: 0, width: "auto", minWidth: "150px" }}
-                      value={a.status}
-                      onChange={function (e) { mudarStatus(a.id_agendamento, e.target.value); }}
-                    >
-                      {OPCOES_STATUS.map(function (op) {
-                        return (
-                          <option key={op} value={op}>
-                            {LABEL_STATUS[op]}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        {agendamentosFiltrados.length === 0 ? (
+          <p style={{ color: "var(--chew-text-muted-light)", fontSize: "0.85rem", textAlign: "center", padding: "1.5rem 0" }}>
+            Nenhum agendamento encontrado com os filtros aplicados.
+          </p>
+        ) : (
+          <table className="chew-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Horário</th>
+                <th>Pet</th>
+                <th>Tutor</th>
+                <th>Profissional</th>
+                <th>Serviço(s)</th>
+                <th>Status</th>
+                <th>Atualizar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {agendamentosFiltrados.map(function (a) {
+                const serviceNames = a.servicos && Array.isArray(a.servicos)
+                  ? a.servicos.map(s => s.nome).join(', ')
+                  : '—';
+                return (
+                  <tr key={a.id_agendamento}>
+                    <td>{formatDateForDisplay(a.data_agendamento)}</td>
+                    <td>{a.hora ? a.hora.substring(0, 5) : '—'}</td>
+                    <td>{a.pet_name || '—'}</td>
+                    <td>{a.cliente_name || '—'}</td>
+                    <td>{a.funcionario_name || '—'}</td>
+                    <td>{serviceNames}</td>
+                    <td>
+                      <span className={"chew-badge " + (STATUS_CLASS_MAP[a.status] || 'agendado')}>
+                        {LABEL_STATUS[a.status] || a.status}
+                      </span>
+                    </td>
+                    <td>
+                      <select
+                        className="chew-input-dark"
+                        style={{ marginBottom: 0, width: "auto", minWidth: "150px" }}
+                        value={a.status}
+                        onChange={function (e) { mudarStatus(a.id_agendamento, e.target.value); }}
+                      >
+                        {OPCOES_STATUS.map(function (op) {
+                          return (
+                            <option key={op} value={op}>
+                              {LABEL_STATUS[op]}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
     </PainelFuncionarioLayout>
   );
