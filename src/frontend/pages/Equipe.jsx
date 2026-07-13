@@ -12,6 +12,9 @@ export default function Equipe() {
   const [cpf, setCpf] = useState("");
   const [cargo, setCargo] = useState("Groomer");
   const [salario, setSalario] = useState("");
+  const [cadastroEmail, setCadastroEmail] = useState("");
+  const [cadastroSenha, setCadastroSenha] = useState("");
+  const [emailSugerido, setEmailSugerido] = useState("");
   const [salvando, setSalvando] = useState(false);
 
   // Form states for creating login credentials
@@ -23,6 +26,21 @@ export default function Equipe() {
   const [salvandoLogin, setSalvandoLogin] = useState(false);
 
   const token = localStorage.getItem("chew_funcionario_token");
+
+  // Suggest email based on name
+  useEffect(() => {
+    if (!nome) {
+      setEmailSugerido("");
+      setCadastroEmail("");
+      return;
+    }
+    const cleanName = nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, "");
+    const sugestao = cleanName.trim().replace(/\s+/g, ".") + "@chew.com";
+    setEmailSugerido(sugestao);
+    if (!cadastroEmail || cadastroEmail === emailSugerido) {
+      setCadastroEmail(sugestao);
+    }
+  }, [nome, emailSugerido, cadastroEmail]);
 
   async function buscarEquipe() {
     try {
@@ -48,13 +66,21 @@ export default function Equipe() {
     if (!nome || !cpf || !salario) {
       return;
     }
+    const cargoPodeTerLogin = ["Gerente", "Atendente", "Veterinario", "Limpeza"].includes(cargo);
+    if (cargoPodeTerLogin && (!cadastroEmail || !cadastroSenha)) {
+      return;
+    }
+
     setErro("");
     setSalvando(true);
 
     try {
       const response = await fetch("http://localhost:3000/api/funcionarios", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           cpf,
           nome,
@@ -68,10 +94,35 @@ export default function Equipe() {
         throw new Error(data.error?.message || data.error || "Erro ao cadastrar funcionário.");
       }
 
+      const fData = await response.json();
+      const createdId = fData.id_funcionario;
+
+      if (cargoPodeTerLogin && createdId) {
+        const loginResponse = await fetch("http://localhost:3000/api/auth/funcionarios/registrar", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            id_funcionario: createdId,
+            email: cadastroEmail,
+            senha: cadastroSenha,
+          }),
+        });
+
+        if (!loginResponse.ok) {
+          const lData = await loginResponse.json();
+          setErro(`Funcionário cadastrado, mas não foi possível criar o login: ${lData.error?.message || lData.error || "Erro desconhecido"}`);
+        }
+      }
+
       await buscarEquipe();
       setNome("");
       setCpf("");
       setSalario("");
+      setCadastroEmail("");
+      setCadastroSenha("");
     } catch (err) {
       setErro(err.message);
     } finally {
@@ -88,6 +139,9 @@ export default function Equipe() {
     try {
       const response = await fetch(`http://localhost:3000/api/funcionarios/${id}`, {
         method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
       });
 
       if (!response.ok) {
@@ -206,6 +260,30 @@ export default function Equipe() {
                 onChange={(e) => setSalario(e.target.value)}
                 required
               />
+
+              {["Gerente", "Atendente", "Veterinario", "Limpeza"].includes(cargo) && (
+                <>
+                  <label className="chew-field-label">Email de Acesso</label>
+                  <input
+                    type="email"
+                    className="chew-input-dark"
+                    placeholder="email@chew.com"
+                    value={cadastroEmail}
+                    onChange={(e) => setCadastroEmail(e.target.value)}
+                    required
+                  />
+
+                  <label className="chew-field-label">Senha inicial</label>
+                  <input
+                    type="password"
+                    className="chew-input-dark"
+                    placeholder="Mínimo 6 caracteres"
+                    value={cadastroSenha}
+                    onChange={(e) => setCadastroSenha(e.target.value)}
+                    required
+                  />
+                </>
+              )}
 
               <button type="submit" className="chew-btn-orange" disabled={salvando}>
                 {salvando ? "Salvando..." : "Cadastrar"}

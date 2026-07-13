@@ -48,6 +48,12 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction): void =
     return;
   }
 
+  // Violação de chave única no PostgreSQL (ex: CPF/email já cadastrado)
+  if (typeof err === 'object' && err !== null && (err as any).code === '23505') {
+    res.status(400).json({ error: { message: 'Este CPF, e-mail ou dados já estão cadastrados.' } });
+    return;
+  }
+
   // Erro inesperado — loga o stack e retorna 500 genérico
   console.error('[Unhandled Error]', err);
   res.status(500).json({ error: { message: 'Internal Server Error' } });
