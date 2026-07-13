@@ -6,8 +6,8 @@ export const criarPetSchema = z.object({
   porte: z.enum(['Pequeno', 'Médio', 'Grande'], {
     message: 'Porte inválido. Escolha entre: Pequeno, Médio, Grande'
   }).optional().nullable(),
-  faixa_etaria: z.enum(['Filhote', 'Adulto', 'Idoso'], {
-    message: 'Faixa etária inválida. Escolha entre: Filhote, Adulto, Idoso'
+  faixa_etaria: z.enum(['Filhote', 'Jovem', 'Adulto', 'Idoso'], {
+    message: 'Faixa etária inválida. Escolha entre: Filhote, Jovem, Adulto, Idoso'
   }).optional().nullable(),
   hist_medico: z.string().max(100, 'Histórico médico deve ter no máximo 100 caracteres').optional().nullable(),
   id_cliente: z.number().int().positive('ID do cliente inválido'),

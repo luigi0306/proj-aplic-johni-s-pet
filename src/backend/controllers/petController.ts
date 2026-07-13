@@ -108,3 +108,32 @@ export const pesquisarPetsPorNome = async (req: Request, res: Response, next: Ne
     next(error);
   }
 };
+
+// ── Self-service: endpoints para o cliente autenticado ──────────────────────
+
+export const listarMeusPets = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { rows } = await db.query('SELECT * FROM pet WHERE id_cliente = $1 ORDER BY id_pet DESC', [
+      req.cliente!.id_cliente,
+    ]);
+    res.json(rows);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const criarMeuPet = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  const { nome, raca, porte, faixa_etaria, hist_medico } = req.body;
+  try {
+    const { rows } = await db.query(
+      `INSERT INTO pet (nome, raca, porte, faixa_etaria, hist_medico, id_cliente)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [nome, raca, porte, faixa_etaria, hist_medico, req.cliente!.id_cliente]
+    );
+    res.status(201).json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+};
+

@@ -21,6 +21,9 @@ import areaLimpezaRoutes from './areaLimpezaRoutes';
 import despesaRoutes from './despesaRoutes';
 import relatorioRoutes from './relatorioRoutes';
 
+// Autenticação e área do cliente
+import authClienteRoutes from './authClienteRoutes';
+
 // Map base paths to routers
 router.use('/clientes', clienteRoutes);
 router.use('/pets', petRoutes);
@@ -40,5 +43,7 @@ router.use('/pedidos-insumo', pedidoInsumoRoutes);
 router.use('/areas-limpeza', areaLimpezaRoutes);
 router.use('/despesas', despesaRoutes);
 router.use('/relatorio', relatorioRoutes);
+router.use('/auth/clientes', authClienteRoutes);
 
 export default router;
+

@@ -103,3 +103,23 @@ export const deletarProduto = async (req: Request, res: Response, next: NextFunc
     next(error);
   }
 };
+
+export const pesquisarProdutos = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { termo } = req.query as { termo?: string };
+    if (!termo) {
+      res.json([]);
+      return;
+    }
+    const queryText = `
+      SELECT * FROM produto
+      WHERE nome ILIKE $1 OR categoria ILIKE $1
+      ORDER BY id_produto DESC
+    `;
+    const { rows } = await db.query(queryText, [`%${termo.trim()}%`]);
+    res.json(rows);
+  } catch (error) {
+    next(error);
+  }
+};
+

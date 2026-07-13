@@ -55,7 +55,7 @@ function Home() {
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
   }, [])
 
-  function logout() { try { localStorage.removeItem('chew_logged_in'); localStorage.removeItem('chew_user') } catch {}; setLogged(false) }
+  function logout() { try { localStorage.removeItem('chew_logged_in'); localStorage.removeItem('chew_user'); localStorage.removeItem('chew_token'); localStorage.removeItem('chew_cliente') } catch {}; setLogged(false) }
 
   const circles = [...CAT_PHOTOS, ...CAT_PHOTOS]
   const icons = {
@@ -90,7 +90,7 @@ function Home() {
               <Link to="/produtos" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#16313b', textDecoration: 'none', padding: '8px 16px', borderRadius: 30, background: 'rgba(246,181,0,.92)', textShadow: '0 1px 2px rgba(255,255,255,.35)' }}>Produtos</Link>
               {!logged && <Link to="/login?mode=signup" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 17, color: '#fff', textDecoration: 'none', padding: '8px 16px', borderRadius: 30, background: 'rgba(27,136,141,.9)', textShadow: '0 1px 3px rgba(0,0,0,.3)' }}>Cadastro</Link>}
               {logged
-                ? <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.4)', borderRadius: 30, padding: '5px 5px 5px 16px' }}><span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 15, color: '#16313b' }}>Olá, {getUser()}</span><a onClick={logout} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 13, color: '#fff', background: '#16313b', borderRadius: 30, padding: '7px 15px', textDecoration: 'none', cursor: 'pointer' }}>Sair</a></div>
+                ? <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.4)', borderRadius: 30, padding: '5px 5px 5px 16px' }}><span style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 15, color: '#16313b' }}>Olá, {getUser()}</span><Link to="/meus-pets" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 13, color: '#fff', background: '#1B888D', borderRadius: 30, padding: '7px 15px', textDecoration: 'none' }}>Meus Pets</Link><a onClick={logout} style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 13, color: '#fff', background: '#16313b', borderRadius: 30, padding: '7px 15px', textDecoration: 'none', cursor: 'pointer' }}>Sair</a></div>
                 : <Link to="/login" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#16313b', textDecoration: 'none', border: '2px solid #16313b', borderRadius: 30, padding: '9px 24px', background: 'rgba(255,255,255,.25)' }}>Entre</Link>}
               <Link
                 to="/funcionario/login"

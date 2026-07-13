@@ -12,6 +12,7 @@ import Agendar from './pages/Agendar.jsx'
 import TosaBanho from './pages/TosaBanho.jsx'
 import Carrinho from './pages/Carrinho.jsx'
 import Login from './pages/Login.jsx'
+import MeusPets from './pages/MeusPets.jsx'
 import LoginFuncionario from './pages/LoginFuncionario.jsx'
 import Prontuario from './pages/Prontuario.jsx'
 import Agendamentos from './pages/Agendamentos.jsx'
@@ -37,6 +38,7 @@ function App() {
         <Route path="/tosa-banho" element={<TosaBanho />} />
         <Route path="/carrinho" element={<Carrinho />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/meus-pets" element={<MeusPets />} />
 
         <Route path="/funcionario/login" element={<LoginFuncionario />} />
         <Route path="/funcionario/prontuario" element={<Prontuario />} />
