@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+.env
+*.log
+.git
+.gitignore
+.DS_Store
+.idea
+.vscode

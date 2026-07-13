@@ -1,18 +1,55 @@
-version: '3.8'
+version: '3.9'
 
 services:
+  # ── Banco de dados PostgreSQL ──────────────────────────────────────────────
   db:
     image: postgres:16-alpine
     container_name: petshop-postgres
-    restart: always
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgrespassword
-      POSTGRES_DB: petshop
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgrespassword}
+      POSTGRES_DB: ${DB_NAME:-petshop}
     ports:
-      - '5432:5432'
+      - '${DB_PORT:-5432}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-petshop}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Setup do banco (schema + seed) — roda uma vez e sai ───────────────────
+  db-setup:
+    build: .
+    container_name: petshop-db-setup
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgrespassword}@db:5432/${DB_NAME:-petshop}
+      NODE_ENV: production
+    command: ['node', 'scripts/setup_db.js']
+    restart: 'no'
+
+  # ── Aplicação (backend Express + frontend React) ───────────────────────────
+  app:
+    build: .
+    container_name: petshop-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      db-setup:
+        condition: service_completed_successfully
+    environment:
+      PORT: ${PORT:-3000}
+      DATABASE_URL: postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgrespassword}@db:5432/${DB_NAME:-petshop}
+      JWT_SECRET: ${JWT_SECRET:-troque_esse_valor_em_producao}
+      NODE_ENV: production
+    ports:
+      - '${PORT:-3000}:3000'
 
 volumes:
   postgres_data:

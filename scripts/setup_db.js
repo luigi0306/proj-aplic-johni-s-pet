@@ -1,10 +1,24 @@
-import fs from 'fs';
-import path from 'path';
-import { pool } from '../src/backend/config/db';
+#!/usr/bin/env node
+/**
+ * setup_db.js — Script de setup do banco de dados (versão JS para produção/Docker)
+ *
+ * Equivalente ao scripts/setup_db.ts, mas em JavaScript puro para rodar sem
+ * ts-node na imagem de produção.
+ *
+ * Uso:
+ *   node scripts/setup_db.js
+ */
+
+const fs = require('fs');
+const path = require('path');
+const { Pool } = require('pg');
+require('dotenv').config();
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 async function setupDatabase() {
   const schemaPath = path.join(__dirname, '..', 'database', 'schema.sql');
-  const seedPath = path.join(__dirname, '..', 'database', 'seed.sql');
+  const seedPath   = path.join(__dirname, '..', 'database', 'seed.sql');
 
   try {
     console.log('Dropping and recreating public schema for a clean slate...');
@@ -24,6 +38,7 @@ async function setupDatabase() {
 
   } catch (error) {
     console.error('Error setting up database:', error);
+    process.exit(1);
   } finally {
     await pool.end();
     console.log('Database connection pool closed.');
