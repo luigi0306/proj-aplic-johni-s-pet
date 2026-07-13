@@ -12,6 +12,7 @@ import vendaRoutes from './vendaRoutes';
 import insumoRoutes from './insumoRoutes';
 import animalAdocaoRoutes from './animalAdocaoRoutes';
 import prontuarioRoutes from './prontuarioRoutes';
+import solicitacaoAdocaoRoutes from './solicitacaoAdocaoRoutes';
 
 // Map base paths to routers
 router.use('/clientes', clienteRoutes);
@@ -24,5 +25,6 @@ router.use('/vendas', vendaRoutes);
 router.use('/insumos', insumoRoutes);
 router.use('/animais-adocao', animalAdocaoRoutes);
 router.use('/prontuarios', prontuarioRoutes);
+router.use('/solicitacoes-adocao', solicitacaoAdocaoRoutes);
 
 export default router;

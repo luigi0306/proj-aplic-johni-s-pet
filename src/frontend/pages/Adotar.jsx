@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Reveal from '../components/Reveal.jsx'
 
@@ -13,22 +13,82 @@ function getPet() {
 function Adotar() {
   const pet = getPet()
   const [sent, setSent] = useState(false)
+  const [nomeSolicitante, setNomeSolicitante] = useState('')
+  const [telefone, setTelefone] = useState('')
+  const [email, setEmail] = useState('')
+  const [idade, setIdade] = useState('')
+  const [tipoMoradia, setTipoMoradia] = useState('Casa com quintal')
+  const [experiencia, setExperiencia] = useState('')
+  const [termo, setTermo] = useState(false)
+
+  const [availablePets, setAvailablePets] = useState([])
+  const [selectedPet, setSelectedPet] = useState(pet)
+  const [error, setError] = useState('')
+  const [loadingPets, setLoadingPets] = useState(false)
+
+  useEffect(() => {
+    if (!pet) {
+      setLoadingPets(true)
+      fetch('http://localhost:3000/api/animais-adocao?status=Disponível')
+        .then(res => res.json())
+        .then(data => {
+          setAvailablePets(data)
+          if (data.length > 0) {
+            setSelectedPet(data[0].nome)
+          }
+          setLoadingPets(false)
+        })
+        .catch(err => {
+          console.error('Erro ao buscar animais:', err)
+          setLoadingPets(false)
+        })
+    } else {
+      setSelectedPet(pet)
+    }
+  }, [pet])
 
   function submit(e) {
     e.preventDefault()
-    try {
-      // registro que iria pro banco de dados
-      const adopters = JSON.parse(localStorage.getItem('chew_adopters') || '[]')
-      adopters.push({ pet, ts: Date.now() })
-      localStorage.setItem('chew_adopters', JSON.stringify(adopters))
-      // marca o bichinho como adotado -> some da lista de adoção
-      if (pet) {
-        const adopted = JSON.parse(localStorage.getItem('chew_adopted') || '[]')
-        if (!adopted.includes(pet)) { adopted.push(pet); localStorage.setItem('chew_adopted', JSON.stringify(adopted)) }
-      }
-    } catch {}
-    setSent(true)
-    window.scrollTo(0, 0)
+    setError('')
+
+    if (!selectedPet) {
+      setError('Por favor, selecione um animal para adotar.')
+      return
+    }
+
+    if (!termo) {
+      setError('Você precisa aceitar o termo de responsabilidade.')
+      return
+    }
+
+    const payload = {
+      nome_animal: selectedPet,
+      nome_solicitante: nomeSolicitante,
+      telefone: telefone,
+      email: email,
+      idade_solicitante: Number(idade),
+      tipo_moradia: tipoMoradia,
+      id_cliente: null
+    }
+
+    fetch('http://localhost:3000/api/solicitacoes-adocao', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+      .then(async res => {
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error?.message || data.error || 'Erro ao enviar solicitação.')
+        }
+        setSent(true)
+        window.scrollTo(0, 0)
+      })
+      .catch(err => {
+        setError(err.message || 'Erro ao conectar ao servidor.')
+      })
   }
 
   return (
@@ -51,8 +111,8 @@ function Adotar() {
                 </div>
                 <h1 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 800, fontSize: 34, color: '#16313b', margin: '0 0 12px' }}>Pedido enviado! 🎉</h1>
                 <p style={{ fontSize: 16, lineHeight: 1.6, color: '#7a6a6a', margin: '0 0 26px' }}>
-                  {pet ? <>Seu interesse em adotar <strong>{pet}</strong> foi registrado.</> : 'Seu pedido de adoção foi registrado.'}<br />
-                  Em breve nossa equipe entra em contato para os próximos passos. 
+                  {selectedPet ? <>Seu interesse em adotar <strong>{selectedPet}</strong> foi registrado.</> : 'Seu pedido de adoção foi registrado.'}<br />
+                  Em breve nossa equipe entra em contato para os próximos passos.
                 </p>
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                   <Link to="/adocao" style={{ fontFamily: "'Fredoka', sans-serif", fontWeight: 600, fontSize: 16, color: '#fff', background: '#9E182B', textDecoration: 'none', borderRadius: 13, padding: '13px 28px' }}>Ver outros bichinhos</Link>
@@ -69,32 +129,58 @@ function Adotar() {
                 <div style={{ textAlign: 'center', marginBottom: 28 }}>
                   <span style={{ display: 'inline-block', background: '#fff', color: '#9E182B', fontWeight: 800, fontSize: 12, letterSpacing: '1.5px', padding: '7px 16px', borderRadius: 30, marginBottom: 14 }}>FORMULÁRIO DE ADOÇÃO</span>
                   <h1 style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 800, fontSize: 40, lineHeight: 1, color: '#16313b', margin: '0 0 10px' }}>
-                    {pet ? <>Quero adotar a(o) {pet}</> : 'Quero adotar um amigo'}
+                    {selectedPet ? <>Quero adotar a(o) {selectedPet}</> : 'Quero adotar um amigo'}
                   </h1>
                   <p style={{ fontSize: 16, color: '#8a7a7a', margin: 0 }}>Conte um pouquinho sobre você. É rápido! </p>
                 </div>
 
                 <form onSubmit={submit} style={{ background: '#fff', borderRadius: 26, padding: '30px 32px', boxShadow: '0 12px 32px rgba(0,0,0,.06)' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 18px' }}>
+
+                    {error && (
+                      <div style={{ gridColumn: '1 / -1', background: '#fce4e4', border: '1.5px solid #f1b0b0', color: '#c0392b', padding: '12px 16px', borderRadius: 12, fontSize: 14, fontWeight: 700 }}>
+                        ⚠️ {error}
+                      </div>
+                    )}
+
+                    {!pet && (
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <label style={labelStyle}>Selecione o animalzinho que deseja adotar</label>
+                        {loadingPets ? (
+                          <div style={{ fontSize: 14, color: '#666', fontStyle: 'italic' }}>Carregando animais disponíveis...</div>
+                        ) : availablePets.length === 0 ? (
+                          <div style={{ fontSize: 14, color: '#c0392b', fontWeight: 600 }}>Nenhum animalzinho disponível no momento.</div>
+                        ) : (
+                          <select required value={selectedPet} onChange={e => setSelectedPet(e.target.value)} style={fld}>
+                            {availablePets.map(p => (
+                              <option key={p.id_animal_adocao} value={p.nome}>
+                                {p.nome} ({p.raca || 'Sem raça definida'} - {p.faixa_etaria})
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+                    )}
+
                     <div style={{ gridColumn: '1 / -1' }}>
                       <label style={labelStyle}>Nome completo</label>
-                      <input required type="text" placeholder="Seu nome" style={fld} />
+                      <input required type="text" placeholder="Seu nome" value={nomeSolicitante} onChange={e => setNomeSolicitante(e.target.value)} style={fld} />
                     </div>
                     <div>
                       <label style={labelStyle}>Telefone</label>
-                      <input required type="tel" placeholder="(00) 00000-0000" style={fld} />
+                      <input required type="tel" placeholder="(00) 00000-0000" value={telefone} onChange={e => setTelefone(e.target.value)} style={fld} />
                     </div>
                     <div>
                       <label style={labelStyle}>Email</label>
-                      <input required type="email" placeholder="voce@email.com" style={fld} />
+                      <input required type="email" placeholder="voce@email.com" value={email} onChange={e => setEmail(e.target.value)} style={fld} />
                     </div>
                     <div>
                       <label style={labelStyle}>Idade</label>
-                      <input required type="number" placeholder="Ex: 28" style={fld} />
+                      <input required type="number" placeholder="Ex: 28" value={idade} onChange={e => setIdade(e.target.value)} style={fld} />
                     </div>
                     <div>
                       <label style={labelStyle}>Tipo de moradia</label>
-                      <select style={fld}>
+                      <select value={tipoMoradia} onChange={e => setTipoMoradia(e.target.value)} style={fld}>
                         <option>Casa com quintal</option>
                         <option>Casa sem quintal</option>
                         <option>Apartamento com tela</option>
@@ -103,10 +189,10 @@ function Adotar() {
                     </div>
                     <div style={{ gridColumn: '1 / -1' }}>
                       <label style={labelStyle}>Já teve outros pets? Conte um pouco.</label>
-                      <textarea rows={4} placeholder="Fale sobre sua experiência e por que quer adotar..." style={{ ...fld, height: 'auto', padding: '12px 14px', resize: 'vertical' }} />
+                      <textarea rows={4} placeholder="Fale sobre sua experiência e por que quer adotar..." value={experiencia} onChange={e => setExperiencia(e.target.value)} style={{ ...fld, height: 'auto', padding: '12px 14px', resize: 'vertical' }} />
                     </div>
                     <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                      <input required type="checkbox" id="termo" style={{ marginTop: 3 }} />
+                      <input required type="checkbox" id="termo" checked={termo} onChange={e => setTermo(e.target.checked)} style={{ marginTop: 3 }} />
                       <label htmlFor="termo" style={{ fontSize: 13.5, color: '#7a6a6a', lineHeight: 1.5 }}>Declaro que as informações são verdadeiras e que oferecerei um lar responsável e cheio de amor!!</label>
                     </div>
                   </div>
