@@ -1,45 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import PainelFuncionarioLayout from "../components/PainelFuncionarioLayout";
 import "./painel-funcionario.css";
-
-// Mock — substituir por chamada real ao endpoint de clientes/pets (FastAPI)
-// quando o backend tiver isso pronto (GET/POST /clientes, com pets aninhados).
-const CLIENTES_INICIAIS = [
-  {
-    id: 1,
-    nome: "Carla Mendes",
-    cpf: "123.456.789-00",
-    endereco: "Rua das Flores, 200 — Brasília",
-    email: "carla.mendes@email.com",
-    telefone: "(61) 99123-4567",
-    pets: [
-      { id: 1, nome: "Amora", raca: "SRD", porte: "Pequeno", faixaEtaria: "Adulto", historico: "Vacina antirrábica em dia. Sem alergias conhecidas." },
-    ],
-  },
-  {
-    id: 2,
-    nome: "Rafael Souza",
-    cpf: "987.654.321-00",
-    endereco: "Av. Central, 55 — Brasília",
-    email: "rafael.souza@email.com",
-    telefone: "(61) 98877-1122",
-    pets: [
-      { id: 2, nome: "Thor", raca: "Labrador", porte: "Grande", faixaEtaria: "Adulto", historico: "Castrado. Alergia a frango." },
-      { id: 3, nome: "Fred", raca: "SRD", porte: "Médio", faixaEtaria: "Idoso", historico: "Consulta de rotina, peso estável." },
-    ],
-  },
-];
 
 const PORTES = ["Pequeno", "Médio", "Grande"];
 const FAIXAS_ETARIAS = ["Filhote", "Jovem", "Adulto", "Idoso"];
 
 function novoPetVazio() {
-  return { id: Date.now() + Math.random(), nome: "", raca: "", porte: "Pequeno", faixaEtaria: "Filhote", historico: "" };
+  return {
+    _localId: Date.now() + Math.random(),
+    nome: "",
+    raca: "",
+    porte: "Pequeno",
+    faixa_etaria: "Filhote",
+    hist_medico: "",
+  };
+}
+
+function getToken() {
+  return localStorage.getItem("chew_funcionario_token") || "";
 }
 
 export default function ClientesPets() {
-  const [clientes, setClientes] = useState(CLIENTES_INICIAIS);
-
   // ---- formulário de cadastro ----
   const [nome, setNome] = useState("");
   const [cpf, setCpf] = useState("");
@@ -49,74 +30,157 @@ export default function ClientesPets() {
   const [senha, setSenha] = useState("");
   const [petsForm, setPetsForm] = useState([novoPetVazio()]);
   const [mensagemCadastro, setMensagemCadastro] = useState("");
-
-  function atualizarPet(id, campo, valor) {
-    setPetsForm(function (prev) {
-      return prev.map(function (p) {
-        if (p.id === id) {
-          return { ...p, [campo]: valor };
-        }
-        return p;
-      });
-    });
-  }
-
-  function adicionarPet() {
-    setPetsForm(function (prev) {
-      return [...prev, novoPetVazio()];
-    });
-  }
-
-  function removerPet(id) {
-    setPetsForm(function (prev) {
-      if (prev.length === 1) return prev;
-      return prev.filter(function (p) { return p.id !== id; });
-    });
-  }
-
-  function handleCadastrar(e) {
-    e.preventDefault();
-    if (!nome || !cpf || !email || !telefone || !senha) return;
-
-    // TODO: enviar para o backend (POST /clientes, com pets aninhados) quando disponível
-    const novoCliente = {
-      id: Date.now(),
-      nome,
-      cpf,
-      endereco,
-      email,
-      telefone,
-      pets: petsForm
-        .filter(function (p) { return p.nome; })
-        .map(function (p) {
-          return { id: p.id, nome: p.nome, raca: p.raca, porte: p.porte, faixaEtaria: p.faixaEtaria, historico: p.historico };
-        }),
-    };
-
-    setClientes([novoCliente, ...clientes]);
-    setMensagemCadastro("Cliente \"" + nome + "\" cadastrado com sucesso, junto com " + novoCliente.pets.length + " pet(s).");
-
-    setNome("");
-    setCpf("");
-    setEndereco("");
-    setEmail("");
-    setTelefone("");
-    setSenha("");
-    setPetsForm([novoPetVazio()]);
-  }
+  const [erroCadastro, setErroCadastro] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
   // ---- busca ----
   const [busca, setBusca] = useState("");
+  const [clientes, setClientes] = useState([]);
+  const [totalClientes, setTotalClientes] = useState(0);
+  const [buscando, setBuscando] = useState(false);
   const [clienteSelecionado, setClienteSelecionado] = useState(null);
 
-  const termoBusca = busca.trim().toLowerCase();
-  const resultadosBusca = termoBusca
-    ? clientes.filter(function (c) {
-        const noCliente = c.nome.toLowerCase().includes(termoBusca) || c.cpf.includes(termoBusca);
-        const noPet = c.pets.some(function (p) { return p.nome.toLowerCase().includes(termoBusca); });
-        return noCliente || noPet;
+  // ── Carrega a contagem total de clientes ao montar ───────────────────────
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    fetch("/api/clientes/clientes-pets", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setTotalClientes(data.length);
       })
-    : [];
+      .catch(() => {});
+  }, []);
+
+  // ── Busca com debounce ───────────────────────────────────────────────────
+  const buscarClientes = useCallback(
+    async (termo) => {
+      const token = getToken();
+      if (!token) return;
+      setBuscando(true);
+      try {
+        const url = termo.trim()
+          ? `/api/clientes/clientes-pets?q=${encodeURIComponent(termo.trim())}`
+          : `/api/clientes/clientes-pets`;
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setClientes(Array.isArray(data) ? data : []);
+      } catch {
+        setClientes([]);
+      } finally {
+        setBuscando(false);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      buscarClientes(busca);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [busca, buscarClientes]);
+
+  // ── Helpers do formulário de pets ────────────────────────────────────────
+  function atualizarPet(localId, campo, valor) {
+    setPetsForm((prev) =>
+      prev.map((p) => (p._localId === localId ? { ...p, [campo]: valor } : p))
+    );
+  }
+
+  function adicionarPet() {
+    setPetsForm((prev) => [...prev, novoPetVazio()]);
+  }
+
+  function removerPet(localId) {
+    setPetsForm((prev) => {
+      if (prev.length === 1) return prev;
+      return prev.filter((p) => p._localId !== localId);
+    });
+  }
+
+  // ── Cadastro ─────────────────────────────────────────────────────────────
+  async function handleCadastrar(e) {
+    e.preventDefault();
+    setErroCadastro("");
+    setMensagemCadastro("");
+
+    const token = getToken();
+    if (!token) {
+      setErroCadastro("Você precisa estar logado como funcionário.");
+      return;
+    }
+
+    setEnviando(true);
+    try {
+      const payload = {
+        cpf,
+        nome,
+        telefone,
+        endereco,
+        email,
+        senha,
+        pets: petsForm
+          .filter((p) => p.nome.trim() !== "")
+          .map((p) => ({
+            nome: p.nome,
+            raca: p.raca || null,
+            porte: p.porte || null,
+            faixa_etaria: p.faixa_etaria || null,
+            hist_medico: p.hist_medico || null,
+          })),
+      };
+
+      const res = await fetch("/api/clientes/cadastro-completo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const msg =
+          data?.error?.message ||
+          (Array.isArray(data?.error) ? data.error.map((e) => e.message).join("; ") : null) ||
+          "Erro ao cadastrar cliente.";
+        setErroCadastro(msg);
+        return;
+      }
+
+      setMensagemCadastro(
+        `Cliente "${data.nome}" cadastrado com sucesso, junto com ${data.pets?.length ?? 0} pet(s)!`
+      );
+      setTotalClientes((t) => t + 1);
+
+      // limpa formulário
+      setNome("");
+      setCpf("");
+      setEndereco("");
+      setEmail("");
+      setTelefone("");
+      setSenha("");
+      setPetsForm([novoPetVazio()]);
+
+      // se havia busca ativa, recarrega
+      if (busca.trim()) buscarClientes(busca);
+    } catch {
+      setErroCadastro("Erro de conexão com o servidor.");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  // ── Resultados filtrados localmente para a exibição ──────────────────────
+  const termoBusca = busca.trim().toLowerCase();
+  const resultadosBusca = clientes;
 
   return (
     <PainelFuncionarioLayout>
@@ -125,106 +189,222 @@ export default function ClientesPets() {
       </div>
 
       <div className="chew-content-grid">
+        {/* ── Painel de cadastro ─────────────────────────────────────── */}
         <div className="chew-panel">
           <h2 className="chew-panel-title">Cadastrar cliente e pet(s)</h2>
           <form onSubmit={handleCadastrar}>
             <label className="chew-field-label">Nome</label>
-            <input className="chew-input-dark" value={nome} onChange={function (e) { setNome(e.target.value); }} required />
+            <input
+              className="chew-input-dark"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              required
+            />
 
             <label className="chew-field-label">CPF</label>
-            <input className="chew-input-dark" placeholder="000.000.000-00" value={cpf} onChange={function (e) { setCpf(e.target.value); }} required />
+            <input
+              className="chew-input-dark"
+              placeholder="000.000.000-00"
+              value={cpf}
+              onChange={(e) => setCpf(e.target.value)}
+              required
+            />
 
             <label className="chew-field-label">Endereço</label>
-            <input className="chew-input-dark" value={endereco} onChange={function (e) { setEndereco(e.target.value); }} />
+            <input
+              className="chew-input-dark"
+              value={endereco}
+              onChange={(e) => setEndereco(e.target.value)}
+            />
 
             <label className="chew-field-label">Email</label>
-            <input type="email" className="chew-input-dark" value={email} onChange={function (e) { setEmail(e.target.value); }} required />
+            <input
+              type="email"
+              className="chew-input-dark"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
 
             <label className="chew-field-label">Telefone</label>
-            <input className="chew-input-dark" placeholder="(00) 00000-0000" value={telefone} onChange={function (e) { setTelefone(e.target.value); }} required />
+            <input
+              className="chew-input-dark"
+              placeholder="(00) 00000-0000"
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
+              required
+            />
 
-            <label className="chew-field-label">Senha</label>
-            <input type="password" className="chew-input-dark" value={senha} onChange={function (e) { setSenha(e.target.value); }} required />
+            <label className="chew-field-label">Senha (acesso do cliente)</label>
+            <input
+              type="password"
+              className="chew-input-dark"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              required
+            />
 
-            <div style={{ borderTop: "1px solid var(--chew-border)", margin: "0.6rem 0 1rem", paddingTop: "1rem" }}>
-              <h3 style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--chew-text-dark)", marginBottom: "0.8rem" }}>Pet(s) do cliente</h3>
+            <div
+              style={{
+                borderTop: "1px solid var(--chew-border)",
+                margin: "0.6rem 0 1rem",
+                paddingTop: "1rem",
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: "0.9rem",
+                  fontWeight: 700,
+                  color: "var(--chew-text-dark)",
+                  marginBottom: "0.8rem",
+                }}
+              >
+                Pet(s) do cliente
+              </h3>
 
-              {petsForm.map(function (p, i) {
-                return (
-                  <div key={p.id} style={{ background: "var(--chew-content-bg)", borderRadius: 10, padding: "0.9rem", marginBottom: "0.8rem" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-                      <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--chew-text-muted-light)" }}>Pet {i + 1}</span>
-                      {petsForm.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={function () { removerPet(p.id); }}
-                          style={{ background: "transparent", border: "none", color: "var(--chew-badge-cancelado-text)", fontSize: "0.75rem", fontWeight: 700, cursor: "pointer" }}
-                        >
-                          Remover
-                        </button>
-                      )}
-                    </div>
-
-                    <label className="chew-field-label">Nome do pet</label>
-                    <input
-                      className="chew-input-dark"
-                      value={p.nome}
-                      onChange={function (e) { atualizarPet(p.id, "nome", e.target.value); }}
-                    />
-
-                    <label className="chew-field-label">Raça</label>
-                    <input
-                      className="chew-input-dark"
-                      value={p.raca}
-                      onChange={function (e) { atualizarPet(p.id, "raca", e.target.value); }}
-                    />
-
-                    <label className="chew-field-label">Porte</label>
-                    <select
-                      className="chew-input-dark"
-                      value={p.porte}
-                      onChange={function (e) { atualizarPet(p.id, "porte", e.target.value); }}
+              {petsForm.map((p, i) => (
+                <div
+                  key={p._localId}
+                  style={{
+                    background: "var(--chew-content-bg)",
+                    borderRadius: 10,
+                    padding: "0.9rem",
+                    marginBottom: "0.8rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "0.78rem",
+                        fontWeight: 700,
+                        color: "var(--chew-text-muted-light)",
+                      }}
                     >
-                      {PORTES.map(function (op) { return <option key={op} value={op}>{op}</option>; })}
-                    </select>
-
-                    <label className="chew-field-label">Faixa etária</label>
-                    <select
-                      className="chew-input-dark"
-                      value={p.faixaEtaria}
-                      onChange={function (e) { atualizarPet(p.id, "faixaEtaria", e.target.value); }}
-                    >
-                      {FAIXAS_ETARIAS.map(function (op) { return <option key={op} value={op}>{op}</option>; })}
-                    </select>
-
-                    <label className="chew-field-label">Histórico médico</label>
-                    <textarea
-                      className="chew-textarea-dark"
-                      placeholder="Vacinas, alergias, cirurgias, observações..."
-                      value={p.historico}
-                      onChange={function (e) { atualizarPet(p.id, "historico", e.target.value); }}
-                    />
+                      Pet {i + 1}
+                    </span>
+                    {petsForm.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removerPet(p._localId)}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "var(--chew-badge-cancelado-text)",
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Remover
+                      </button>
+                    )}
                   </div>
-                );
-              })}
+
+                  <label className="chew-field-label">Nome do pet</label>
+                  <input
+                    className="chew-input-dark"
+                    value={p.nome}
+                    onChange={(e) => atualizarPet(p._localId, "nome", e.target.value)}
+                  />
+
+                  <label className="chew-field-label">Raça</label>
+                  <input
+                    className="chew-input-dark"
+                    value={p.raca}
+                    onChange={(e) => atualizarPet(p._localId, "raca", e.target.value)}
+                  />
+
+                  <label className="chew-field-label">Porte</label>
+                  <select
+                    className="chew-input-dark"
+                    value={p.porte}
+                    onChange={(e) => atualizarPet(p._localId, "porte", e.target.value)}
+                  >
+                    {PORTES.map((op) => (
+                      <option key={op} value={op}>
+                        {op}
+                      </option>
+                    ))}
+                  </select>
+
+                  <label className="chew-field-label">Faixa etária</label>
+                  <select
+                    className="chew-input-dark"
+                    value={p.faixa_etaria}
+                    onChange={(e) => atualizarPet(p._localId, "faixa_etaria", e.target.value)}
+                  >
+                    {FAIXAS_ETARIAS.map((op) => (
+                      <option key={op} value={op}>
+                        {op}
+                      </option>
+                    ))}
+                  </select>
+
+                  <label className="chew-field-label">Histórico médico</label>
+                  <textarea
+                    className="chew-textarea-dark"
+                    placeholder="Vacinas, alergias, cirurgias, observações..."
+                    value={p.hist_medico}
+                    onChange={(e) => atualizarPet(p._localId, "hist_medico", e.target.value)}
+                  />
+                </div>
+              ))}
 
               <button
                 type="button"
                 onClick={adicionarPet}
-                style={{ width: "100%", background: "transparent", border: "1.5px dashed var(--chew-border)", color: "var(--chew-text-muted-light)", borderRadius: 10, padding: "0.6rem", fontSize: "0.85rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                style={{
+                  width: "100%",
+                  background: "transparent",
+                  border: "1.5px dashed var(--chew-border)",
+                  color: "var(--chew-text-muted-light)",
+                  borderRadius: 10,
+                  padding: "0.6rem",
+                  fontSize: "0.85rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
               >
                 + Adicionar outro pet
               </button>
             </div>
 
-            <button type="submit" className="chew-btn-orange">
-              Cadastrar cliente
+            <button type="submit" className="chew-btn-orange" disabled={enviando}>
+              {enviando ? "Cadastrando..." : "Cadastrar cliente"}
             </button>
           </form>
 
-          {mensagemCadastro && <div className="chew-success-hint" style={{ marginTop: "1rem" }}>{mensagemCadastro}</div>}
+          {mensagemCadastro && (
+            <div className="chew-success-hint" style={{ marginTop: "1rem" }}>
+              {mensagemCadastro}
+            </div>
+          )}
+          {erroCadastro && (
+            <div
+              style={{
+                marginTop: "1rem",
+                padding: "0.75rem 1rem",
+                borderRadius: 10,
+                background: "rgba(220,53,69,0.12)",
+                color: "#ff6b7a",
+                fontSize: "0.85rem",
+                fontWeight: 600,
+              }}
+            >
+              ⚠️ {erroCadastro}
+            </div>
+          )}
         </div>
 
+        {/* ── Painel de busca ────────────────────────────────────────── */}
         <div className="chew-panel">
           <h2 className="chew-panel-title">Buscar cliente ou pet</h2>
 
@@ -232,16 +412,25 @@ export default function ClientesPets() {
             className="chew-input-dark"
             placeholder="Nome do cliente, CPF ou nome do pet..."
             value={busca}
-            onChange={function (e) { setBusca(e.target.value); setClienteSelecionado(null); }}
+            onChange={(e) => {
+              setBusca(e.target.value);
+              setClienteSelecionado(null);
+            }}
           />
 
-          {!termoBusca && (
+          {!termoBusca && !buscando && (
             <p style={{ color: "var(--chew-text-muted-light)", fontSize: "0.85rem" }}>
-              Digite pra buscar entre {clientes.length} cliente(s) cadastrado(s).
+              Digite para buscar entre {totalClientes} cliente(s) cadastrado(s).
             </p>
           )}
 
-          {termoBusca && resultadosBusca.length === 0 && (
+          {buscando && (
+            <p style={{ color: "var(--chew-text-muted-light)", fontSize: "0.85rem" }}>
+              Buscando...
+            </p>
+          )}
+
+          {termoBusca && !buscando && resultadosBusca.length === 0 && (
             <p style={{ color: "var(--chew-text-muted-light)", fontSize: "0.85rem" }}>
               Nenhum cliente ou pet encontrado para "{busca}".
             </p>
@@ -249,56 +438,120 @@ export default function ClientesPets() {
 
           {termoBusca && !clienteSelecionado && resultadosBusca.length > 0 && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              {resultadosBusca.map(function (c) {
-                return (
+              {resultadosBusca.map((c) => (
+                <div
+                  key={c.id_cliente}
+                  onClick={() => setClienteSelecionado(c)}
+                  style={{
+                    cursor: "pointer",
+                    background: "var(--chew-content-bg)",
+                    borderRadius: 10,
+                    padding: "0.8rem 1rem",
+                  }}
+                >
                   <div
-                    key={c.id}
-                    onClick={function () { setClienteSelecionado(c); }}
-                    style={{ cursor: "pointer", background: "var(--chew-content-bg)", borderRadius: 10, padding: "0.8rem 1rem" }}
+                    style={{
+                      fontWeight: 700,
+                      color: "var(--chew-text-dark)",
+                      fontSize: "0.9rem",
+                    }}
                   >
-                    <div style={{ fontWeight: 700, color: "var(--chew-text-dark)", fontSize: "0.9rem" }}>{c.nome}</div>
-                    <div style={{ fontSize: "0.78rem", color: "var(--chew-text-muted-light)" }}>
-                      {c.pets.length} pet(s): {c.pets.map(function (p) { return p.nome; }).join(", ")}
-                    </div>
+                    {c.nome}
                   </div>
-                );
-              })}
+                  <div
+                    style={{ fontSize: "0.78rem", color: "var(--chew-text-muted-light)" }}
+                  >
+                    CPF: {c.cpf} &nbsp;·&nbsp; {c.pets?.length ?? 0} pet(s)
+                    {c.pets?.length > 0 && (
+                      <>: {c.pets.map((p) => p.nome).join(", ")}</>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
           {clienteSelecionado && (
             <div>
               <button
-                onClick={function () { setClienteSelecionado(null); }}
-                style={{ background: "transparent", border: "none", color: "var(--chew-teal-dark)", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", marginBottom: "0.8rem", padding: 0 }}
+                onClick={() => setClienteSelecionado(null)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--chew-teal-dark)",
+                  fontSize: "0.78rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  marginBottom: "0.8rem",
+                  padding: 0,
+                }}
               >
                 ← Voltar para os resultados
               </button>
 
               <div style={{ marginBottom: "1.2rem" }}>
-                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--chew-text-dark)", marginBottom: "0.4rem" }}>{clienteSelecionado.nome}</h3>
-                <p style={{ fontSize: "0.82rem", color: "var(--chew-text-muted-light)", margin: "0.15rem 0" }}>CPF: {clienteSelecionado.cpf}</p>
-                <p style={{ fontSize: "0.82rem", color: "var(--chew-text-muted-light)", margin: "0.15rem 0" }}>Email: {clienteSelecionado.email}</p>
-                <p style={{ fontSize: "0.82rem", color: "var(--chew-text-muted-light)", margin: "0.15rem 0" }}>Telefone: {clienteSelecionado.telefone}</p>
+                <h3
+                  style={{
+                    fontSize: "1.05rem",
+                    fontWeight: 700,
+                    color: "var(--chew-text-dark)",
+                    marginBottom: "0.4rem",
+                  }}
+                >
+                  {clienteSelecionado.nome}
+                </h3>
+                <p style={{ fontSize: "0.82rem", color: "var(--chew-text-muted-light)", margin: "0.15rem 0" }}>
+                  CPF: {clienteSelecionado.cpf}
+                </p>
+                {clienteSelecionado.email && (
+                  <p style={{ fontSize: "0.82rem", color: "var(--chew-text-muted-light)", margin: "0.15rem 0" }}>
+                    Email: {clienteSelecionado.email}
+                  </p>
+                )}
+                <p style={{ fontSize: "0.82rem", color: "var(--chew-text-muted-light)", margin: "0.15rem 0" }}>
+                  Telefone: {clienteSelecionado.telefone}
+                </p>
                 {clienteSelecionado.endereco && (
-                  <p style={{ fontSize: "0.82rem", color: "var(--chew-text-muted-light)", margin: "0.15rem 0" }}>Endereço: {clienteSelecionado.endereco}</p>
+                  <p style={{ fontSize: "0.82rem", color: "var(--chew-text-muted-light)", margin: "0.15rem 0" }}>
+                    Endereço: {clienteSelecionado.endereco}
+                  </p>
                 )}
               </div>
 
-              <h4 style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--chew-text-dark)", marginBottom: "0.6rem" }}>Pets</h4>
+              <h4
+                style={{
+                  fontSize: "0.85rem",
+                  fontWeight: 700,
+                  color: "var(--chew-text-dark)",
+                  marginBottom: "0.6rem",
+                }}
+              >
+                Pets
+              </h4>
+
+              {clienteSelecionado.pets?.length === 0 && (
+                <p style={{ color: "var(--chew-text-muted-light)", fontSize: "0.85rem" }}>
+                  Nenhum pet cadastrado.
+                </p>
+              )}
+
               <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                {clienteSelecionado.pets.map(function (p) {
-                  return (
-                    <div key={p.id} className="chew-atendimento-card">
-                      <div className="chew-atendimento-top">
-                        <span className="chew-atendimento-pet">{p.nome}</span>
-                        <span className="chew-atendimento-data">{p.porte} • {p.faixaEtaria}</span>
-                      </div>
-                      <p className="chew-atendimento-desc">Raça: {p.raca || "não informada"}</p>
-                      <p className="chew-atendimento-desc">{p.historico || "Sem histórico registrado ainda."}</p>
+                {clienteSelecionado.pets?.map((p) => (
+                  <div key={p.id_pet} className="chew-atendimento-card">
+                    <div className="chew-atendimento-top">
+                      <span className="chew-atendimento-pet">{p.nome}</span>
+                      <span className="chew-atendimento-data">
+                        {p.porte ?? "—"} • {p.faixa_etaria ?? "—"}
+                      </span>
                     </div>
-                  );
-                })}
+                    <p className="chew-atendimento-desc">
+                      Raça: {p.raca || "não informada"}
+                    </p>
+                    <p className="chew-atendimento-desc">
+                      {p.hist_medico || "Sem histórico registrado ainda."}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           )}
