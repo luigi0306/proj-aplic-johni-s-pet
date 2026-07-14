@@ -44,6 +44,7 @@ export default function Agendamentos() {
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [formError, setFormError] = useState(null);
 
   // Search / filter states
   const [searchText, setSearchText] = useState("");
@@ -117,9 +118,45 @@ export default function Agendamentos() {
     });
   }
 
+  function atualizarProfissional(idAgendamento, novoFuncionarioId) {
+    fetch(`/api/agendamentos/${idAgendamento}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id_funcionario: Number(novoFuncionarioId) })
+    })
+    .then(async (res) => {
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error?.message || 'Falha ao atualizar profissional.');
+      }
+      return res.json();
+    })
+    .then(() => {
+      const novoFuncionario = employees.find(emp => emp.id_funcionario === Number(novoFuncionarioId));
+      setAgendamentos(prev => prev.map(a => a.id_agendamento === idAgendamento ? {
+        ...a,
+        id_funcionario: Number(novoFuncionarioId),
+        funcionario_name: novoFuncionario ? novoFuncionario.nome : a.funcionario_name
+      } : a));
+    })
+    .catch(err => {
+      alert(err.message || 'Erro ao atualizar profissional.');
+    });
+  }
+
   function handleNovoAgendamento(e) {
     e.preventDefault();
+    setFormError(null);
     if (!selectedPetId || !dataAgendamento || !hora || !selectedServiceId || !selectedEmployeeId) return;
+
+    const horariosOcupados = agendamentos
+      .filter(a => String(a.id_funcionario) === selectedEmployeeId && (a.data_agendamento || '').split('T')[0] === dataAgendamento)
+      .map(a => a.hora ? a.hora.substring(0, 5) : '');
+
+    if (horariosOcupados.includes(hora)) {
+      setFormError('Este profissional já tem atendimento agendado para este horário. Escolha outro horário ou outro profissional.');
+      return;
+    }
 
     const selectedService = services.find(s => s.id_servico === Number(selectedServiceId));
     if (!selectedService) return;
@@ -144,8 +181,11 @@ export default function Agendamentos() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-    .then(res => {
-      if (!res.ok) throw new Error('Falha ao criar agendamento.');
+    .then(async res => {
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error?.message || errData.error || 'Falha ao criar agendamento.');
+      }
       return res.json();
     })
     .then(() => {
@@ -161,10 +201,11 @@ export default function Agendamentos() {
           setSelectedEmployeeId("");
           setDataAgendamento("");
           setHora("");
+          setFormError(null);
         });
     })
     .catch(err => {
-      alert(err.message || 'Erro ao criar agendamento.');
+      setFormError(err.message || 'Erro ao criar agendamento.');
     });
   }
 
@@ -430,7 +471,13 @@ export default function Agendamentos() {
               ))}
             </select>
 
-            <button type="submit" className="chew-btn-orange">
+            {formError && (
+              <div style={{ marginTop: '0.75rem', color: '#a00', fontSize: '0.92rem', fontWeight: 600 }}>
+                ⚠️ {formError}
+              </div>
+            )}
+
+            <button type="submit" className="chew-btn-orange" style={{ marginTop: '1rem' }}>
               Criar agendamento
             </button>
           </form>
@@ -478,7 +525,7 @@ export default function Agendamentos() {
       </div>
 
       <div className="chew-panel">
-        <h2 className="chew-panel-title">Atualizar status</h2>
+        <h2 className="chew-panel-title">Atualizar agendamento</h2>
         {agendamentosFiltrados.length === 0 ? (
           <p style={{ color: "var(--chew-text-muted-light)", fontSize: "0.85rem", textAlign: "center", padding: "1.5rem 0" }}>
             Nenhum agendamento encontrado com os filtros aplicados.
@@ -492,6 +539,7 @@ export default function Agendamentos() {
                 <th>Pet</th>
                 <th>Tutor</th>
                 <th>Profissional</th>
+                <th>Trocar profissional</th>
                 <th>Serviço(s)</th>
                 <th>Status</th>
                 <th>Atualizar</th>
@@ -509,6 +557,23 @@ export default function Agendamentos() {
                     <td>{a.pet_name || '—'}</td>
                     <td>{a.cliente_name || '—'}</td>
                     <td>{a.funcionario_name || '—'}</td>
+                    <td>
+                      <select
+                        className="chew-input-dark"
+                        style={{ marginBottom: 0, width: "100%" }}
+                        value={a.id_funcionario || ''}
+                        onChange={function (e) { atualizarProfissional(a.id_agendamento, e.target.value); }}
+                      >
+                        <option value="">Selecione...</option>
+                        {employees.map(function (emp) {
+                          return (
+                            <option key={emp.id_funcionario} value={emp.id_funcionario}>
+                              {emp.nome} ({emp.cargo})
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </td>
                     <td>{serviceNames}</td>
                     <td>
                       <span className={"chew-badge " + (STATUS_CLASS_MAP[a.status] || 'agendado')}>

@@ -7,6 +7,32 @@ interface ServicoInput {
   preco_cobrado: number;
 }
 
+const verificarConflitoFuncionario = async (
+  client: any,
+  id_funcionario: number,
+  data_agendamento: string,
+  hora: string,
+  excludeId?: number
+): Promise<void> => {
+  const queryText = `
+    SELECT 1 FROM agendamento
+    WHERE id_funcionario = $1
+      AND data_agendamento = $2
+      AND hora = $3
+      AND status <> 'Cancelado'
+      ${excludeId ? 'AND id_agendamento <> $4' : ''}
+    LIMIT 1
+  `;
+  const values = excludeId
+    ? [id_funcionario, data_agendamento, hora, excludeId]
+    : [id_funcionario, data_agendamento, hora];
+
+  const { rows } = await client.query(queryText, values);
+  if (rows.length > 0) {
+    throw new AppError('Funcionário já possui atendimento agendado neste horário.', 409);
+  }
+};
+
 // List all appointments
 export const listarAgendamentos = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -58,11 +84,15 @@ export const buscarAgendamentoPorId = async (req: Request, res: Response, next: 
 // Create new appointment (transactional)
 export const criarAgendamento = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { id_pet, id_funcionario, data_agendamento, hora, status, valor_total, servicos } = req.body;
-  
+
   const client = await db.pool.connect();
   try {
     await client.query('BEGIN');
-    
+
+    if (id_funcionario) {
+      await verificarConflitoFuncionario(client, id_funcionario, data_agendamento, hora);
+    }
+
     // 1. Insert appointment
     const insertAgendamentoQuery = `
       INSERT INTO agendamento (id_pet, id_funcionario, data_agendamento, hora, status, valor_total)
@@ -72,9 +102,9 @@ export const criarAgendamento = async (req: Request, res: Response, next: NextFu
     const agendamentoResult = await client.query(insertAgendamentoQuery, [
       id_pet, id_funcionario, data_agendamento, hora, status || 'Agendado', valor_total
     ]);
-    
+
     const newAgendamento = agendamentoResult.rows[0];
-    
+
     // 2. Insert items into agendamento_servico if present
     if (servicos && Array.isArray(servicos) && servicos.length > 0) {
       for (const svc of servicos as ServicoInput[]) {
@@ -85,9 +115,9 @@ export const criarAgendamento = async (req: Request, res: Response, next: NextFu
         await client.query(insertJunctionQuery, [newAgendamento.id_agendamento, svc.id_servico, svc.preco_cobrado]);
       }
     }
-    
+
     await client.query('COMMIT');
-    
+
     res.status(201).json({
       ...newAgendamento,
       servicos: servicos || []
@@ -105,6 +135,20 @@ export const atualizarAgendamento = async (req: Request, res: Response, next: Ne
   const { id } = req.params;
   const updates = req.body;
   try {
+    const agendamentoExistenteResult = await db.query('SELECT * FROM agendamento WHERE id_agendamento = $1', [id]);
+    if (agendamentoExistenteResult.rows.length === 0) {
+      throw new AppError('Agendamento não encontrado.', 404);
+    }
+
+    const agendamentoExistente = agendamentoExistenteResult.rows[0];
+    const id_funcionario = updates.id_funcionario ?? agendamentoExistente.id_funcionario;
+    const data_agendamento = updates.data_agendamento ?? agendamentoExistente.data_agendamento;
+    const hora = updates.hora ?? agendamentoExistente.hora;
+
+    if (id_funcionario) {
+      await verificarConflitoFuncionario(db, id_funcionario, data_agendamento, hora, Number(id));
+    }
+
     const fields = Object.keys(updates).map((key, i) => `${key} = $${i + 1}`);
     if (fields.length === 0) {
       throw new AppError('Nenhum campo para atualização foi enviado.', 400);
@@ -131,17 +175,17 @@ export const deletarAgendamento = async (req: Request, res: Response, next: Next
   const client = await db.pool.connect();
   try {
     await client.query('BEGIN');
-    
+
     // Delete from junction first
     await client.query('DELETE FROM agendamento_servico WHERE id_agendamento = $1', [id]);
-    
+
     // Delete agendamento
     const { rows } = await client.query('DELETE FROM agendamento WHERE id_agendamento = $1 RETURNING *', [id]);
     if (rows.length === 0) {
       await client.query('ROLLBACK');
       throw new AppError('Agendamento não encontrado.', 404);
     }
-    
+
     await client.query('COMMIT');
     res.json({ message: 'Appointment deleted successfully', appointment: rows[0] });
   } catch (error) {

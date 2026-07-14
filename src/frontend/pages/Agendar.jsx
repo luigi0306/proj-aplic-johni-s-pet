@@ -29,6 +29,7 @@ function Agendar() {
   const [employees, setEmployees] = useState([])
   const [clients, setClients] = useState([])
   const [pets, setPets] = useState([])
+  const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
   const [apiError, setApiError] = useState(null)
 
@@ -70,7 +71,7 @@ function Agendar() {
     async function loadData() {
       try {
         setLoading(true)
-        const [resSvc, resEmp, resCli, resPet] = await Promise.all([
+        const [resSvc, resEmp, resCli, resPet, resAgn] = await Promise.all([
           fetch('http://localhost:3000/api/servicos').then(r => {
             if (!r.ok) throw new Error('Falha ao buscar serviços.')
             return r.json()
@@ -86,12 +87,17 @@ function Agendar() {
           fetch('http://localhost:3000/api/pets').then(r => {
             if (!r.ok) throw new Error('Falha ao buscar pets.')
             return r.json()
+          }),
+          fetch('http://localhost:3000/api/agendamentos').then(r => {
+            if (!r.ok) throw new Error('Falha ao buscar agendamentos.')
+            return r.json()
           })
         ])
         setServices(resSvc)
         setEmployees(resEmp)
         setClients(resCli)
         setPets(resPet)
+        setAppointments(resAgn)
       } catch (err) {
         console.error(err)
         setApiError('Não foi possível conectar ao servidor. Verifique se o backend está rodando na porta 3000.')
@@ -125,32 +131,57 @@ function Agendar() {
   }, [services, servico])
 
   // Employee filters
+  const selectedServices = useMemo(() => {
+    return services.filter(s => selectedServiceIds.includes(String(s.id_servico)))
+  }, [services, selectedServiceIds])
+
+  const requiredEmployeeRoles = useMemo(() => {
+    if (selectedServiceIds.length > 0) {
+      const names = selectedServices.map(s => (s.nome || '').toLowerCase())
+      const isGrooming = names.some(name => /banho|tosa|unha|pelagem/.test(name))
+      const isVeterinary = names.some(name => /consulta|vacina|pulgas|exame|cirurgia/.test(name))
+      if (isGrooming && !isVeterinary) return ['Groomer']
+      if (isVeterinary && !isGrooming) return ['Veterinario']
+      if (isGrooming && isVeterinary) return ['Groomer', 'Veterinario']
+      return servico === 'tosa' ? ['Groomer'] : ['Veterinario']
+    }
+    return servico === 'tosa' ? ['Groomer'] : ['Veterinario']
+  }, [selectedServiceIds, selectedServices, servico])
+
   const displayEmployees = useMemo(() => {
-    const filtered = employees.filter(e => {
-      if (servico === 'tosa') {
-        return e.cargo === 'Groomer'
-      } else {
-        return e.cargo === 'Gerente' || e.cargo === 'Atendente' || e.cargo === 'Groomer'
-      }
-    })
-    return filtered.length > 0 ? filtered : employees
-  }, [employees, servico])
+    return employees.filter(e => requiredEmployeeRoles.includes(e.cargo))
+  }, [employees, requiredEmployeeRoles])
 
   // Auto-select employee based on displayEmployees
   useEffect(() => {
     if (displayEmployees.length > 0) {
-      setSelectedEmployeeId(String(displayEmployees[0].id_funcionario))
+      if (!selectedEmployeeId || !displayEmployees.some(emp => String(emp.id_funcionario) === selectedEmployeeId)) {
+        setSelectedEmployeeId(String(displayEmployees[0].id_funcionario))
+      }
     } else {
       setSelectedEmployeeId('')
+      setSlot(null)
     }
   }, [displayEmployees])
 
+  useEffect(() => {
+    if (!sel || !slot || displayEmployees.length === 0) return
+    const appointmentDate = formatDateForApi(sel)
+    const available = displayEmployees.find(emp => !appointments.some(a =>
+      String(a.id_funcionario) === String(emp.id_funcionario)
+      && normalizeDate(a.data_agendamento) === appointmentDate
+      && normalizeTime(a.hora) === slot
+      && a.status !== 'Cancelado'
+    ))
+    if (available) {
+      setSelectedEmployeeId(String(available.id_funcionario))
+    } else {
+      setSelectedEmployeeId('')
+    }
+  }, [displayEmployees, appointments, sel, slot])
+
   // Filter pets by selected client
   const clientPets = pets.filter(p => p.id_cliente === Number(selectedClientId))
-
-  const selectedServices = useMemo(() => {
-    return services.filter(s => selectedServiceIds.includes(String(s.id_servico)))
-  }, [services, selectedServiceIds])
 
   const totalValue = useMemo(() => {
     return selectedServices.reduce((sum, s) => sum + Number(s.preco_base), 0)
@@ -175,6 +206,26 @@ function Agendar() {
     const month = String(d.getMonth() + 1).padStart(2, '0')
     const day = String(d.getDate()).padStart(2, '0')
     return `${year}-${month}-${day}`
+  }
+
+  const normalizeTime = (time) => {
+    if (!time) return ''
+    return String(time).slice(0, 5)
+  }
+  const normalizeDate = (date) => {
+    if (!date) return ''
+    return String(date).slice(0, 10)
+  }
+
+  const isSlotAvailable = (date, time) => {
+    if (!date || !time || selectedServiceIds.length === 0) return false
+    const appointmentDate = formatDateForApi(date)
+    return displayEmployees.some(emp => !appointments.some(a =>
+      String(a.id_funcionario) === String(emp.id_funcionario)
+      && normalizeDate(a.data_agendamento) === appointmentDate
+      && normalizeTime(a.hora) === time
+      && a.status !== 'Cancelado'
+    ))
   }
 
   async function confirm() {
@@ -350,12 +401,57 @@ function Agendar() {
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10 }}>
                         {ALL_SLOTS.map((t) => {
                           const active = slot === t
-                          const enabled = !!sel
+                          const enabled = isSlotAvailable(sel, t)
+                          const appointmentDate = sel ? formatDateForApi(sel) : ''
+                          const freeEmployeesForSlot = enabled
+                            ? displayEmployees.filter(emp => !appointments.some(a =>
+                              String(a.id_funcionario) === String(emp.id_funcionario)
+                              && normalizeDate(a.data_agendamento) === appointmentDate
+                              && normalizeTime(a.hora) === t
+                              && a.status !== 'Cancelado'
+                            ))
+                            : []
                           return (
-                            <button key={t} onClick={() => enabled && setSlot(t)} style={{ height: 42, border: `1.5px solid ${active ? '#0E8C9E' : '#d8eaee'}`, borderRadius: 11, fontFamily: "'Nunito', sans-serif", fontWeight: 700, fontSize: 13.5, cursor: enabled ? 'pointer' : 'not-allowed', background: active ? '#0E8C9E' : (enabled ? '#fff' : '#fafafa'), color: active ? '#fff' : (enabled ? '#16313b' : '#c7cfd1') }}>{t}</button>
+                            <button
+                              key={t}
+                              onClick={() => {
+                                if (!enabled) return
+                                setSlot(t)
+                                setSelectedEmployeeId(String(freeEmployeesForSlot[0].id_funcionario))
+                              }}
+                              disabled={!enabled}
+                              style={{
+                                height: 42,
+                                border: `1.5px solid ${active ? '#0E8C9E' : enabled ? '#d8eaee' : '#e4e8ea'}`,
+                                borderRadius: 11,
+                                fontFamily: "'Nunito', sans-serif",
+                                fontWeight: 700,
+                                fontSize: 13.5,
+                                cursor: enabled ? 'pointer' : 'not-allowed',
+                                background: active ? '#0E8C9E' : enabled ? '#fff' : '#f4f6f6',
+                                color: active ? '#fff' : enabled ? '#16313b' : '#c4ccd0'
+                              }}
+                            >
+                              {t}
+                            </button>
                           )
                         })}
                       </div>
+                      {sel && selectedServiceIds.length > 0 && !displayEmployees.length && (
+                        <div style={{ marginTop: 12, fontSize: 13, color: '#b64040', fontWeight: 600 }}>
+                          Nenhum profissional disponível para o serviço selecionado.
+                        </div>
+                      )}
+                      {sel && selectedServiceIds.length > 0 && displayEmployees.length > 0 && !displayEmployees.some(emp => !appointments.some(a =>
+                        String(a.id_funcionario) === String(emp.id_funcionario)
+                        && a.data_agendamento === formatDateForApi(sel)
+                        && normalizeTime(a.hora) === slot
+                        && a.status !== 'Cancelado'
+                      )) && (
+                          <div style={{ marginTop: 12, fontSize: 13, color: '#b64040', fontWeight: 600 }}>
+                            Nenhum horário disponível para os profissionais compatíveis neste dia.
+                          </div>
+                        )}
                     </div>
 
                     <div style={{ background: '#fff', borderRadius: 26, padding: '24px 26px', boxShadow: '0 12px 32px rgba(0,0,0,.06)' }}>
